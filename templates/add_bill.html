@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Add Bill</h1>
+
+    <form action="{{ url_for('preview_bill') }}" method="POST" enctype="multipart/form-data">
+        <label for="vendor">Vendor</label>
+        <input type="text" id="vendor" name="vendor" required>
+
+        <label for="amount_due">Amount Due</label>
+        <input type="number" id="amount_due" name="amount_due" step="0.01" required>
+
+        <label for="due_date">Due Date</label>
+        <input type="date" id="due_date" name="due_date" required>
+
+        <label for="bill_date">Bill Date</label>
+        <input type="date" id="bill_date" name="bill_date">
+
+        <label for="category">Category</label>
+        <input type="text" id="category" name="category">
+
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes"></textarea>
+
+        <label for="bill_image">Bill Image</label>
+        <input type="file" id="bill_image" name="bill_image" accept="image/*" capture="environment">
+
+        <button type="submit">Preview Bill</button>
+    </form>
+{% endblock %}
