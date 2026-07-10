@@ -2,7 +2,7 @@ import os
 import sqlite3
 from datetime import datetime
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -71,8 +71,9 @@ def preview_bill():
 
     if uploaded_file and uploaded_file.filename != "":
         filename = secure_filename(uploaded_file.filename)
-        image_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        uploaded_file.save(image_path)
+        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        uploaded_file.save(save_path)
+        image_path = filename
 
     bill = {
         "vendor": request.form["vendor"],
@@ -122,6 +123,9 @@ def confirm_bill():
 
     return redirect(url_for("index"))
 
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

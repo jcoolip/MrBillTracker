@@ -10,7 +10,7 @@
     <p><strong>Category:</strong> {{ bill.category }}</p>
     <p><strong>Notes:</strong> {{ bill.notes }}</p>
     <p><strong>Image Path:</strong> {{ bill.image_path }}</p>
-    <p><strong>Image:</strong> <img src="{{ bill.image_path }}"></p>
+    <p><strong>Image:</strong> <img src="{{ url_for('uploaded_file', filename=bill.image_path) }}"></p>
 
 
 

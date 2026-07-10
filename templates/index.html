@@ -10,7 +10,7 @@
 
     <h2>{{ bill.vendor }}</h2>
 
-    <p><a href="{{ bill.image_path }}">image</a></p>
+    <p><a href="{{ url_for('uploaded_file', filename=bill.image_path) }}">image</a></p>
 
     <p>Amount Due: ${{ bill.amount_due }}</p>
 
