@@ -1,8 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Dashboard</h1>
 
-    <p>Upcoming bills here...</p>
+<h1>Dashboard</h1>
 
-    {% endblock %}
+{% for bill in bills %}
+
+<div class="card">
+
+    <h2>{{ bill.vendor }}</h2>
+
+    <p><a href="{{ bill.image_path }}">image</a></p>
+
+    <p>Amount Due: ${{ bill.amount_due }}</p>
+
+    <p>Due Date: {{ bill.due_date }}</p>
+
+</div>
+
+{% endfor %}
+
+{% endblock %}

@@ -47,7 +47,15 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    conn = get_db_conn()
+
+    bills = conn.execute(
+        "SELECT * FROM bills ORDER BY due_date"
+    ).fetchall()
+
+    conn.close()
+
+    return render_template("index.html", bills=bills)
 
 
 @app.route("/add")
@@ -116,4 +124,4 @@ def confirm_bill():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
