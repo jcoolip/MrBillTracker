@@ -2,19 +2,23 @@
 
 {% block content %}
 
-<h1>Dashboard</h1>
+<!--<h1>Dashboard</h1>-->
 
 {% for bill in bills %}
 
 <div class="card">
 
-    <h2>{{ bill.vendor }}</h2>
-
-    <p><a href="{{ url_for('uploaded_file', filename=bill.image_path) }}">image</a></p>
-
-    <p>Amount Due: ${{ bill.amount_due }}</p>
-
-    <p>Due Date: {{ bill.due_date }}</p>
+    <h3>{{ bill.vendor }}</h3>
+    <p>{{ bill.due_date }} -
+    ${{ "%.2f"|format(bill.amount_due) }}</p>
+    {% if bill.status == "paid" %}
+        <p class="status-paid">
+            Paid ${{ "%.2f"|format(bill.amount_paid) }}
+        </p>
+    {% else %}
+        <a href="{{ bill.pmt_url }}" target="_blank">Pay Online</a> -
+        <a href="{{ url_for('payment', bill_id=bill.id) }}">Record Payment</a>
+    {% endif %}
 
 </div>
 

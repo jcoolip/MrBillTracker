@@ -25,6 +25,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS bills (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             vendor TEXT NOT NULL,
+            pmt_url TEXT,
             amount_due REAL NOT NULL,
             due_date TEXT NOT NULL,
             bill_date TEXT,
@@ -32,7 +33,11 @@ def init_db():
             status TEXT DEFAULT 'unpaid',
             notes TEXT,
             image_path TEXT,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            date_paid TEXT,
+            amount_paid REAL,
+            confirmation_number TEXT,
+            confirmation_image_path TEXT
         )
         """)
 
@@ -55,7 +60,16 @@ def index():
 
     conn.close()
 
-    return render_template("index.html", bills=bills)
+    formatted_bills = []
+
+    for bill in bills:
+        bill = dict(bill)
+        bill["due_date"] = datetime.strptime(
+            bill["due_date"], "%Y-%m-%d"
+        ).strftime("%m/%d")
+        formatted_bills.append(bill)
+
+    return render_template("index.html", bills=formatted_bills)
 
 
 @app.route("/add")
@@ -77,6 +91,7 @@ def preview_bill():
 
     bill = {
         "vendor": request.form["vendor"],
+        "pmt_url": request.form["pmt_url"],
         "amount_due": request.form["amount_due"],
         "due_date": request.form["due_date"],
         "bill_date": request.form.get("bill_date"),
@@ -88,7 +103,6 @@ def preview_bill():
 
     return render_template("preview_bill.html", bill=bill)
 
-
 @app.route("/confirm", methods=["POST"])
 def confirm_bill():
     conn = get_db_conn()
@@ -96,6 +110,7 @@ def confirm_bill():
     conn.execute("""
         INSERT INTO bills (
             vendor,
+            pmt_url,
             amount_due,
             due_date,
             bill_date,
@@ -105,9 +120,10 @@ def confirm_bill():
             image_path,
             created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         request.form["vendor"],
+        request.form["pmt_url"],
         request.form["amount_due"],
         request.form["due_date"],
         request.form.get("bill_date"),
@@ -126,6 +142,58 @@ def confirm_bill():
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+@app.route("/payment/<int:bill_id>")
+def payment(bill_id):
+    conn = get_db_conn()
+
+    bill = conn.execute("""
+        SELECT *
+        FROM bills
+        WHERE id = ?
+    """, (bill_id,)).fetchone()
+
+    conn.close()
+
+    return render_template("pay.html", bill=bill)
+
+@app.route("/payment/<int:bill_id>", methods=["POST"])
+def save_payment(bill_id):
+    confirmation_image_path = None
+
+    uploaded_file = request.files.get("confirm_image")
+
+    if uploaded_file and uploaded_file.filename != "":
+        filename = secure_filename(uploaded_file.filename)
+        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        uploaded_file.save(save_path)
+        confirmation_image_path = filename
+
+    conn = get_db_conn()
+
+    conn.execute("""
+        UPDATE bills
+        SET
+            status = ?,
+            date_paid = ?,
+            amount_paid = ?,
+            confirmation_number = ?,
+            confirmation_image_path = ?
+        WHERE id = ?
+    """, (
+        "paid",
+        request.form["pmt_date"],
+        request.form["pmt_amt"],
+        request.form.get("confirm_num"),
+        confirmation_image_path,
+        bill_id
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
