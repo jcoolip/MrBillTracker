@@ -114,22 +114,60 @@ def index():
 def view_vendor(vendor_id):
     conn = get_db_conn()
 
-    vendor = conn.execute("""
-        SELECT
-            bills.*,
-            vendors.name AS vendor_name,
-            vendors.pmt_url
+    total_owed = conn.execute("""
+        SELECT COALESCE(SUM(amount_due), 0) AS total_owed
         FROM bills
-        JOIN vendors
-            ON bills.vendor_id = vendors.id
+        WHERE vendor_id = ?
+            AND date_paid IS NULL
+        """, (vendor_id,)).fetchone()
+
+    next_due_date = conn.execute("""
+        SELECT MIN(due_date) AS next_due_date
+        FROM bills
+        WHERE vendor_id = ?
+            AND date_paid IS NULL
+        """, (vendor_id,)).fetchone()
+
+    last_payment = conn.execute("""
+        SELECT date_paid, amount_paid
+        FROM bills
+        WHERE vendor_id = ?
+            AND date_paid IS NOT NULL
+        ORDER BY date_paid DESC
+        LIMIT 1
+        """, (vendor_id,)).fetchone()
+
+    bill_history = conn.execute("""
+        SELECT *
+        FROM bills
+        WHERE vendor_id = ?
+        ORDER BY bill_date DESC
+        """, (vendor_id,)).fetchall()
+
+    vendor = conn.execute("""
+        SELECT id, name, pmt_url
+        FROM vendors
         WHERE vendors.id = ?
-        ORDER BY due_date
         """,
-        (vendor_id,)).fetchall()
+        (vendor_id,)).fetchone()
+
+    # vendor = conn.execute("""
+    #     SELECT
+    #         bills.*,
+    #         vendors.name AS vendor_name,
+    #         vendors.pmt_url
+    #     FROM bills
+    #     JOIN vendors
+    #         ON bills.vendor_id = vendors.id
+    #     WHERE vendors.id = ?
+    #     ORDER BY due_date
+    #     """,
+    #     (vendor_id,)).fetchall()
 
     conn.close()
 
-    return render_template("vendor.html", vendor=vendor)
+    return render_template("vendor.html", vendor=vendor, total_owed=total_owed["total_owed"], next_due_date=next_due_date["next_due_date"] if next_due_date else None,
+        last_payment=last_payment, bill_history=bill_history)
 
 @app.route("/add")
 def add_bill():

@@ -1,18 +1,26 @@
-{% extends "base.html" %}
+<h1>{{ vendor.name }}</h1>
 
-{% block content %}
+<p>
+    <strong>Current due:</strong>
+    ${{ "%.2f"|format(total_owed) }}
+</p>
 
-<!--<h1>Dashboard</h1>-->
+{% if next_due_date %}
+    <p><strong>Next due:</strong> {{ next_due_date }}</p>
+{% else %}
+    <p>No current bill due.</p>
+{% endif %}
 
-{% for v in vendor %}
+{% if last_payment %}
+    <p>
+        <strong>Last paid:</strong>
+        {{ last_payment.date_paid }} —
+        ${{ "%.2f"|format(last_payment.amount_paid) }}
+    </p>
+{% endif %}
 
-<div class="card">
-
-    <h3>{{ v.vendor_name }}</h3>
-    <p>info</p>
-
-</div>
-
-{% endfor %}
-
-{% endblock %}
+{% if vendor.pmt_url %}
+    <a href="{{ vendor.pmt_url }}" target="_blank" rel="noopener">
+        Make Payment
+    </a>
+{% endif %}
