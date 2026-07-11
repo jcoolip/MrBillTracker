@@ -4,22 +4,18 @@
     <h1>Final review</h1>
 
     <p><strong>Vendor:</strong> {{ bill.vendor }}</p>
-    <p><strong>Payment URL:</strong> {{ bill.pmt_url }}</p>
     <p><strong>Amount:</strong> ${{ bill.amount_due }}</p>
     <p><strong>Due Date:</strong> {{ bill.due_date }}</p>
     <p><strong>Bill Date:</strong> {{ bill.bill_date }}</p>
-    <p><strong>Category:</strong> {{ bill.category }}</p>
     <p><strong>Notes:</strong> {{ bill.notes }}</p>
     <p><strong>Image Path:</strong> {{ bill.image_path }}</p>
     <p><strong>Image:</strong> <img src="{{ url_for('uploaded_file', filename=bill.image_path) }}"></p>
 
     <form action="{{ url_for('confirm_bill') }}" method="POST">
-        <input type="hidden" name="vendor" value="{{ bill.vendor }}">
-        <input type="hidden" name="pmt_url" value="{{ bill.pmt_url }}">
+        <input type="hidden" name="vendor_id" value="{{ bill.vendor_id }}">
         <input type="hidden" name="amount_due" value="{{ bill.amount_due }}">
         <input type="hidden" name="due_date" value="{{ bill.due_date }}">
         <input type="hidden" name="bill_date" value="{{ bill.bill_date }}">
-        <input type="hidden" name="category" value="{{ bill.category }}">
         <input type="hidden" name="notes" value="{{ bill.notes }}">
         <input type="hidden" name="image_path" value="{{ bill.image_path }}">
 

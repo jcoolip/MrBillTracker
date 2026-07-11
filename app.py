@@ -15,6 +15,7 @@ app.config["APP_NAME"] = "Mr. Bill Tracker"
 def get_db_conn():
     conn = sqlite3.connect(app.config["DATABASE"])
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 
@@ -22,30 +23,53 @@ def init_db():
     conn = get_db_conn()
 
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS vendors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            pmt_url TEXT
+        )
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS bills (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            vendor TEXT NOT NULL,
-            pmt_url TEXT,
+            vendor_id INTEGER NOT NULL,
             amount_due REAL NOT NULL,
             due_date TEXT NOT NULL,
             bill_date TEXT,
-            category TEXT,
-            status TEXT DEFAULT 'unpaid',
             notes TEXT,
             image_path TEXT,
             created_at TEXT NOT NULL,
             date_paid TEXT,
             amount_paid REAL,
             confirmation_number TEXT,
-            confirmation_image_path TEXT
+            confirmation_image_path TEXT,
+            FOREIGN KEY (vendor_id) REFERENCES vendors(id)
         )
         """)
 
     conn.commit()
     conn.close()
 
+def init_vendors():
+    conn = get_db_conn()
+
+    vendors = [
+        ("Beckley Water Company", "https://www.eonlinebill.com/bapp/beckley/indexl"),
+        ("Appalachian Power", "https://www.appalachianpower.com/account/bills/")
+    ]
+
+    conn.executemany("""
+        INSERT OR IGNORE INTO vendors (name, pmt_url)
+        VALUES (?, ?)
+    """, vendors)
+
+    conn.commit()
+    conn.close()
+
 
 init_db()
+init_vendors()
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
@@ -54,28 +78,70 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 def index():
     conn = get_db_conn()
 
-    bills = conn.execute(
-        "SELECT * FROM bills ORDER BY due_date"
+    vendors = conn.execute("""
+        SELECT
+            vendors.id,
+            vendors.name,
+            vendors.pmt_url,
+            SUM(
+                CASE
+                    WHEN bills.date_paid IS NULL
+                    THEN bills.amount_due
+                    ELSE 0
+                END
+            ) AS total_owed
+        FROM vendors
+        LEFT JOIN bills
+            ON vendors.id = bills.vendor_id
+        GROUP BY vendors.id
+        """
     ).fetchall()
 
     conn.close()
 
-    formatted_bills = []
+    # formatted_bills = []
 
-    for bill in bills:
-        bill = dict(bill)
-        bill["due_date"] = datetime.strptime(
-            bill["due_date"], "%Y-%m-%d"
-        ).strftime("%m/%d")
-        formatted_bills.append(bill)
+    # for bill in bills:
+    #     bill = dict(bill)
+    #     bill["due_date"] = datetime.strptime(
+    #         bill["due_date"], "%Y-%m-%d"
+    #     ).strftime("%m/%d")
+    #     formatted_bills.append(bill)
 
-    return render_template("index.html", bills=formatted_bills)
+    return render_template("index.html", vendors=vendors)
 
+@app.route("/vendors/<int:vendor_id>")
+def view_vendor(vendor_id):
+    conn = get_db_conn()
+
+    vendor = conn.execute("""
+        SELECT
+            bills.*,
+            vendors.name AS vendor_name,
+            vendors.pmt_url
+        FROM bills
+        JOIN vendors
+            ON bills.vendor_id = vendors.id
+        WHERE vendors.id = ?
+        ORDER BY due_date
+        """,
+        (vendor_id,)).fetchall()
+
+    conn.close()
+
+    return render_template("vendor.html", vendor=vendor)
 
 @app.route("/add")
 def add_bill():
-    return render_template("add_bill.html")
+    conn = get_db_conn()
 
+    vendors = conn.execute("""
+        SELECT * FROM vendors ORDER BY name
+        """).fetchall()
+
+    conn.close()
+
+    return render_template("add_bill.html", vendors=vendors)
 
 @app.route("/add", methods=["POST"])
 def preview_bill():
@@ -90,13 +156,10 @@ def preview_bill():
         image_path = filename
 
     bill = {
-        "vendor": request.form["vendor"],
-        "pmt_url": request.form["pmt_url"],
+        "vendor_id": request.form["vendor_id"],
         "amount_due": request.form["amount_due"],
         "due_date": request.form["due_date"],
         "bill_date": request.form.get("bill_date"),
-        "category": request.form.get("category"),
-        "status": request.form.get("status", "unpaid"),
         "notes": request.form.get("notes"),
         "image_path": image_path,
     }
@@ -109,26 +172,20 @@ def confirm_bill():
 
     conn.execute("""
         INSERT INTO bills (
-            vendor,
-            pmt_url,
+            vendor_id,
             amount_due,
             due_date,
             bill_date,
-            category,
-            status,
             notes,
             image_path,
             created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
-        request.form["vendor"],
-        request.form["pmt_url"],
+        request.form["vendor_id"],
         request.form["amount_due"],
         request.form["due_date"],
         request.form.get("bill_date"),
-        request.form.get("category"),
-        request.form.get("status", "unpaid"),
         request.form.get("notes"),
         request.form.get("image_path"),
         datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -174,14 +231,12 @@ def save_payment(bill_id):
     conn.execute("""
         UPDATE bills
         SET
-            status = ?,
             date_paid = ?,
             amount_paid = ?,
             confirmation_number = ?,
             confirmation_image_path = ?
         WHERE id = ?
     """, (
-        "paid",
         request.form["pmt_date"],
         request.form["pmt_amt"],
         request.form.get("confirm_num"),
@@ -193,6 +248,7 @@ def save_payment(bill_id):
     conn.close()
 
     return redirect(url_for("index"))
+
 
 
 if __name__ == "__main__":
