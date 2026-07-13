@@ -8,7 +8,7 @@
 
 <div class="card">
 
-    <h3>{{ vendor.name }}</h3>
+    <h3><a href="{{ url_for('view_vendor', vendor_id=vendor.id) }}">{{ vendor.name }}</a></h3>
     <p>{{ vendor.total_owed }}</p>
 
 </div>

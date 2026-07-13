@@ -18,7 +18,6 @@ def get_db_conn():
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
-
 def init_db():
     conn = get_db_conn()
 
@@ -27,6 +26,19 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
             pmt_url TEXT
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS payments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            vendor_id TEXT NOT NULL,
+            payment_date TEXT NOT NULL,
+            amount_paid REAL NOT NULL,
+            confirmation_number TEXT,
+            notes TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (vendor_id) REFERENCES vendors(id)
         )
     """)
 
@@ -40,10 +52,6 @@ def init_db():
             notes TEXT,
             image_path TEXT,
             created_at TEXT NOT NULL,
-            date_paid TEXT,
-            amount_paid REAL,
-            confirmation_number TEXT,
-            confirmation_image_path TEXT,
             FOREIGN KEY (vendor_id) REFERENCES vendors(id)
         )
         """)
@@ -67,12 +75,12 @@ def init_vendors():
     conn.commit()
     conn.close()
 
+def init_uploads():
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 init_db()
 init_vendors()
-
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-
+init_uploads()
 
 @app.route("/")
 def index():
@@ -80,22 +88,33 @@ def index():
 
     vendors = conn.execute("""
         SELECT
-            vendors.id,
-            vendors.name,
-            vendors.pmt_url,
-            SUM(
-                CASE
-                    WHEN bills.date_paid IS NULL
-                    THEN bills.amount_due
-                    ELSE 0
-                END
-            ) AS total_owed
+            vendors.*,
+            COALESCE(bill_totals.total_billed, 0)
+            - COALESCE(payment_totals.total_paid, 0)
+            AS total_owed
         FROM vendors
-        LEFT JOIN bills
-            ON vendors.id = bills.vendor_id
-        GROUP BY vendors.id
-        """
-    ).fetchall()
+
+        LEFT JOIN (
+            SELECT
+                vendor_id,
+                SUM(amount_due) AS total_billed
+            FROM bills
+            GROUP BY vendor_id
+        ) AS bill_totals
+            ON vendors.id = bill_totals.vendor_id
+
+        LEFT JOIN (
+            SELECT
+                vendor_id,
+                SUM(amount_paid) as total_paid
+            FROM payments
+            GROUP BY vendor_id
+        ) AS payment_totals
+            ON vendors.id = payment_totals.vendor_id
+
+        ORDER BY total_owed DESC, vendors.name
+        """).fetchall()
+
 
     conn.close()
 
@@ -110,64 +129,154 @@ def index():
 
     return render_template("index.html", vendors=vendors)
 
+@app.route("/vendors")
+def vendors():
+    conn = get_db_conn()
+
+    vendors = conn.execute("""
+        SELECT *
+        FROM vendors
+        """).fetchall()
+
+    return render_template("vendor", vendors=vendors)
+
 @app.route("/vendors/<int:vendor_id>")
 def view_vendor(vendor_id):
     conn = get_db_conn()
 
-    total_owed = conn.execute("""
-        SELECT COALESCE(SUM(amount_due), 0) AS total_owed
-        FROM bills
-        WHERE vendor_id = ?
-            AND date_paid IS NULL
-        """, (vendor_id,)).fetchone()
+    vendor = conn.execute("""
+        SELECT id, name, pmt_url
+        FROM vendors
+        WHERE id = ?
+    """, (vendor_id,)).fetchone()
 
-    next_due_date = conn.execute("""
-        SELECT MIN(due_date) AS next_due_date
+    if vendor is None:
+        conn.close()
+        return "Vendor not found", 404
+
+    balance = conn.execute("""
+        SELECT
+            COALESCE(bill_totals.total_billed, 0)
+            - COALESCE(payment_totals.total_paid, 0)
+            AS total_owed
+        FROM vendors
+
+        LEFT JOIN (
+            SELECT
+                vendor_id,
+                SUM(amount_due) AS total_billed
+            FROM bills
+            WHERE vendor_id = ?
+            GROUP BY vendor_id
+        ) AS bill_totals
+            ON vendors.id = bill_totals.vendor_id
+
+        LEFT JOIN (
+            SELECT
+                vendor_id,
+                SUM(amount_paid) AS total_paid
+            FROM payments
+            WHERE vendor_id = ?
+            GROUP BY vendor_id
+        ) AS payment_totals
+            ON vendors.id = payment_totals.vendor_id
+
+        WHERE vendors.id = ?
+    """, (vendor_id, vendor_id, vendor_id)).fetchone()
+
+    current_bill = conn.execute("""
+        SELECT due_date
         FROM bills
         WHERE vendor_id = ?
-            AND date_paid IS NULL
-        """, (vendor_id,)).fetchone()
+        ORDER BY bill_date DESC, id DESC
+        LIMIT 1
+    """, (vendor_id,)).fetchone()
 
     last_payment = conn.execute("""
-        SELECT date_paid, amount_paid
-        FROM bills
+        SELECT payment_date, amount_paid
+        FROM payments
         WHERE vendor_id = ?
-            AND date_paid IS NOT NULL
-        ORDER BY date_paid DESC
+        ORDER BY payment_date DESC, id DESC
         LIMIT 1
-        """, (vendor_id,)).fetchone()
+    """, (vendor_id,)).fetchone()
 
     bill_history = conn.execute("""
         SELECT *
         FROM bills
         WHERE vendor_id = ?
-        ORDER BY bill_date DESC
-        """, (vendor_id,)).fetchall()
+        ORDER BY bill_date DESC, id DESC
+    """, (vendor_id,)).fetchall()
+
+    payment_history = conn.execute("""
+        SELECT *
+        FROM payments
+        WHERE vendor_id = ?
+        ORDER BY payment_date DESC, id DESC
+    """, (vendor_id,)).fetchall()
+
+    conn.close()
+
+    total_owed = balance["total_owed"]
+
+    next_due_date = None
+
+    if total_owed > 0 and current_bill:
+        next_due_date = current_bill["due_date"]
+
+    return render_template(
+        "vendor.html",
+        vendor=vendor,
+        total_owed=total_owed,
+        next_due_date=next_due_date,
+        last_payment=last_payment,
+        bill_history=bill_history,
+        payment_history=payment_history,
+    )
+
+@app.route("/vendors/<int:vendor_id>/payment")
+def payment(vendor_id):
+    conn = get_db_conn()
 
     vendor = conn.execute("""
         SELECT id, name, pmt_url
         FROM vendors
-        WHERE vendors.id = ?
-        """,
-        (vendor_id,)).fetchone()
-
-    # vendor = conn.execute("""
-    #     SELECT
-    #         bills.*,
-    #         vendors.name AS vendor_name,
-    #         vendors.pmt_url
-    #     FROM bills
-    #     JOIN vendors
-    #         ON bills.vendor_id = vendors.id
-    #     WHERE vendors.id = ?
-    #     ORDER BY due_date
-    #     """,
-    #     (vendor_id,)).fetchall()
+        WHERE id = ?
+    """, (vendor_id,)).fetchone()
 
     conn.close()
 
-    return render_template("vendor.html", vendor=vendor, total_owed=total_owed["total_owed"], next_due_date=next_due_date["next_due_date"] if next_due_date else None,
-        last_payment=last_payment, bill_history=bill_history)
+    if vendor is None:
+        return "Vendor not found", 404
+
+    return render_template("pay.html", vendor=vendor)
+
+@app.route("/vendors/<int:vendor_id>/payment", methods=["POST"])
+def save_payment(vendor_id):
+    conn = get_db_conn()
+
+    conn.execute("""
+        INSERT INTO payments (
+            vendor_id,
+            payment_date,
+            amount_paid,
+            notes,
+            confirmation_number,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        vendor_id,
+        request.form["payment_date"],
+        request.form["amount_paid"],
+        request.form.get("notes"),
+        request.form.get("confirmation_number"),
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("view_vendor", vendor_id=vendor_id))
 
 @app.route("/add")
 def add_bill():
@@ -237,55 +346,6 @@ def confirm_bill():
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
-
-@app.route("/payment/<int:bill_id>")
-def payment(bill_id):
-    conn = get_db_conn()
-
-    bill = conn.execute("""
-        SELECT *
-        FROM bills
-        WHERE id = ?
-    """, (bill_id,)).fetchone()
-
-    conn.close()
-
-    return render_template("pay.html", bill=bill)
-
-@app.route("/payment/<int:bill_id>", methods=["POST"])
-def save_payment(bill_id):
-    confirmation_image_path = None
-
-    uploaded_file = request.files.get("confirm_image")
-
-    if uploaded_file and uploaded_file.filename != "":
-        filename = secure_filename(uploaded_file.filename)
-        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        uploaded_file.save(save_path)
-        confirmation_image_path = filename
-
-    conn = get_db_conn()
-
-    conn.execute("""
-        UPDATE bills
-        SET
-            date_paid = ?,
-            amount_paid = ?,
-            confirmation_number = ?,
-            confirmation_image_path = ?
-        WHERE id = ?
-    """, (
-        request.form["pmt_date"],
-        request.form["pmt_amt"],
-        request.form.get("confirm_num"),
-        confirmation_image_path,
-        bill_id
-    ))
-
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for("index"))
 
 
 

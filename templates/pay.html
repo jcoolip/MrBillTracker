@@ -1,25 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Payment</h1>
 
-<input type="hidden" name="bill_id" value="{{ bill.id }}">
+<div class="card">
+    <h1>Record Payment</h1>
+    <h2>{{ vendor.name }}</h2>
 
-<form action="{{ url_for('save_payment', bill_id=bill.id) }}" method="POST" enctype="multipart/form-data">        <label for="pmt_date">Payment Date</label>
-        <input type="date" id="pmt_date" name="pmt_date" required>
+    <form
+        action="{{ url_for('save_payment', vendor_id=vendor.id) }}"
+        method="POST"
+        enctype="multipart/form-data"
+    >
+        <label for="payment_date">Payment Date</label>
+        <input
+            type="date"
+            id="payment_date"
+            name="payment_date"
+            required
+        >
 
-        <label for="pmt_amt">Amount Paid</label>
-        <input type="number" step="0.01" id="pmt_amt" name="pmt_amt" required>
+        <label for="amount_paid">Amount Paid</label>
+        <input
+            type="number"
+            id="amount_paid"
+            name="amount_paid"
+            step="0.01"
+            min="0"
+            required
+        >
 
-        <label for="pmt_notes">Notes</label>
-        <textarea id="pmt_notes" name="pmt_notes"></textarea>
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes"></textarea>
 
-        <label for="confirm_num">Confirmation Number</label>
-        <input type="text" id="confirm_num" name="confirm_num">
+        <label for="confirmation_number">Confirmation Number</label>
+        <input
+            type="text"
+            id="confirmation_number"
+            name="confirmation_number"
+        >
 
-        <label for="confirm_image">Confirmation Image</label>
-        <input type="file" id="confirm_image" name="confirm_image" accept="image/*" capture="environment">
-
-        <button type="submit">Pay</button>
+        <button type="submit">Record Payment</button>
     </form>
+</div>
+
 {% endblock %}
