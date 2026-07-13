@@ -67,7 +67,8 @@ def init_vendors():
         ("Appalachian Power", "https://www.appalachianpower.com/account/bills/"),
         ("Frontier Communications", "https://ssoparent.frontier.com/pages/login"),
         ("Mountaineer Gas", "https://www.doxo.com/bill-pay/mountaineergas"),
-        ("Disney+", "https://www.disneyplus.com/commerce/billing")
+        ("Disney+", "https://www.disneyplus.com/commerce/billing"),
+        ("Beckley Sanitary", "https://beckleywv.municipalonlinepayments.com/beckleywv")
     ]
 
     conn.executemany("""
@@ -90,65 +91,149 @@ def index():
     conn = get_db_conn()
 
     vendors = conn.execute("""
-        SELECT
-            vendors.*,
-            COALESCE(bill_totals.total_billed, 0)
-            - COALESCE(payment_totals.total_paid, 0)
-            AS total_owed,
-            due_dates.next_due_date
-        FROM vendors
-
-        LEFT JOIN (
+        WITH vendor_balances AS (
             SELECT
-                vendor_id,
-                SUM(amount_due) AS total_billed
-            FROM bills
-            GROUP BY vendor_id
-        ) AS bill_totals
-            ON vendors.id = bill_totals.vendor_id
+                vendors.id,
+                vendors.name,
+                vendors.pmt_url,
 
-        LEFT JOIN (
-            SELECT
-                vendor_id,
-                SUM(amount_paid) as total_paid
-            FROM payments
-            GROUP BY vendor_id
-        ) AS payment_totals
-            ON vendors.id = payment_totals.vendor_id
+                COALESCE(bill_totals.total_billed, 0)
+                    - COALESCE(payment_totals.total_paid, 0)
+                    AS total_owed,
 
-        LEFT JOIN (
-            SELECT
-                vendor_id,
-                MIN(due_date) AS next_due_date
-            FROM bills
-            GROUP BY vendor_id
-        ) AS due_dates
-            ON vendors.id = due_dates.vendor_id
+                (
+                    SELECT bills.due_date
+                    FROM bills
+                    WHERE bills.vendor_id = vendors.id
+                    ORDER BY
+                        bills.bill_date DESC,
+                        bills.id DESC
+                    LIMIT 1
+                ) AS next_due_date
+
+            FROM vendors
+
+            LEFT JOIN (
+                SELECT
+                    vendor_id,
+                    SUM(amount_due) AS total_billed
+                FROM bills
+                GROUP BY vendor_id
+            ) AS bill_totals
+                ON vendors.id = bill_totals.vendor_id
+
+            LEFT JOIN (
+                SELECT
+                    vendor_id,
+                    SUM(amount_paid) AS total_paid
+                FROM payments
+                GROUP BY vendor_id
+            ) AS payment_totals
+                ON vendors.id = payment_totals.vendor_id
+        )
+
+        SELECT *
+        FROM vendor_balances
 
         ORDER BY
-            due_dates.next_due_date IS NULL,
-            due_dates.next_due_date,
-            vendors.name
-        """).fetchall()
+            CASE
+                WHEN total_owed <= 0 THEN 1
+                ELSE 0
+            END,
+            next_due_date,
+            name
+    """).fetchall()
 
     conn.close()
 
     formatted_vendors = []
+
     for vendor in vendors:
         vendor = dict(vendor)
 
-        if vendor["next_due_date"]:
+        if vendor["total_owed"] <= 0:
+            vendor["next_due_date"] = "---"
+
+        elif vendor["next_due_date"]:
             vendor["next_due_date"] = datetime.strptime(
                 vendor["next_due_date"],
                 "%Y-%m-%d"
             ).strftime("%m/%d")
 
-        if vendor["total_owed"] <= 0:
+        else:
             vendor["next_due_date"] = "---"
 
         formatted_vendors.append(vendor)
 
-    return render_template("index.html", vendors=formatted_vendors)
+    return render_template(
+        "index.html",
+        vendors=formatted_vendors,
+    )
+
+# @app.route("/")
+# def index():
+#     conn = get_db_conn()
+
+#     vendors = conn.execute("""
+#         SELECT
+#             vendors.*,
+#             COALESCE(bill_totals.total_billed, 0)
+#             - COALESCE(payment_totals.total_paid, 0)
+#             AS total_owed,
+#             due_dates.next_due_date
+#         FROM vendors
+
+#         LEFT JOIN (
+#             SELECT
+#                 vendor_id,
+#                 SUM(amount_due) AS total_billed
+#             FROM bills
+#             GROUP BY vendor_id
+#         ) AS bill_totals
+#             ON vendors.id = bill_totals.vendor_id
+
+#         LEFT JOIN (
+#             SELECT
+#                 vendor_id,
+#                 SUM(amount_paid) as total_paid
+#             FROM payments
+#             GROUP BY vendor_id
+#         ) AS payment_totals
+#             ON vendors.id = payment_totals.vendor_id
+
+#         LEFT JOIN (
+#             SELECT
+#                 vendor_id,
+#                 MIN(due_date) AS next_due_date
+#             FROM bills
+#             GROUP BY vendor_id
+#         ) AS due_dates
+#             ON vendors.id = due_dates.vendor_id
+
+#         ORDER BY
+#             due_dates.next_due_date IS NULL,
+#             due_dates.next_due_date,
+#             vendors.name
+#         """).fetchall()
+
+#     conn.close()
+
+#     formatted_vendors = []
+#     for vendor in vendors:
+#         vendor = dict(vendor)
+
+#         if vendor["next_due_date"]:
+#             vendor["next_due_date"] = datetime.strptime(
+#                 vendor["next_due_date"],
+#                 "%Y-%m-%d"
+#             ).strftime("%m/%d")
+
+#         if vendor["total_owed"] <= 0:
+#             vendor["next_due_date"] = "---"
+
+#         formatted_vendors.append(vendor)
+
+#     return render_template("index.html", vendors=formatted_vendors)
 
 @app.route("/vendors/<int:vendor_id>")
 def view_vendor(vendor_id):
@@ -326,6 +411,8 @@ def preview_bill():
         FROM vendors
         WHERE id = ?
         """, (vendor_id,)).fetchone()
+
+    conn.close()
 
     bill = {
         "vendor_id": vendor_id,
