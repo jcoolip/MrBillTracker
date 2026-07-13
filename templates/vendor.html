@@ -1,36 +1,98 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
 
+<section class="vendor-summary">
     <h1>{{ vendor.name }}</h1>
 
-    <p>
-        <strong>Total Due:</strong>
-        ${{ "%.2f"|format(total_owed) }}
-    </p>
+    <div class="vendor-stats">
+        <div class="stat-block">
+            <span class="display-label">Due Date</span>
 
-    {% if next_due_date %}
-        <p><strong>Due Date:</strong> {{ next_due_date }}</p>
+            <span class="summary-value">
+                {% if next_due_date %}
+                    {{ next_due_date }}
+                {% else %}
+                    ---
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="stat-block">
+            <span class="display-label">Total Due</span>
+
+            <span class="summary-value">
+                ${{ "%.2f"|format(total_owed) }}
+            </span>
+        </div>
+
+        <div class="vendor-actions">
+            {% if vendor.pmt_url %}
+                <a
+                    class="action-button"
+                    href="{{ vendor.pmt_url }}"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    [ Pay ]
+                </a>
+            {% endif %}
+
+            <a
+                class="action-button"
+                href="{{ url_for('payment', vendor_id=vendor.id) }}"
+            >
+                [ Record ]
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="bill-history-panel">
+    <h2>Bills</h2>
+
+    <div class="bill-list-header">
+        <span>Due Date</span>
+        <span>Bill Date</span>
+        <span>Amount</span>
+        <span>View</span>
+    </div>
+
+    {% for bill in bill_history %}
+        <div class="bill-list-row">
+            <span>{{ bill.due_date }}</span>
+
+            <span>
+                {% if bill.bill_date %}
+                    {{ bill.bill_date }}
+                {% else %}
+                    ---
+                {% endif %}
+            </span>
+
+            <span>
+                ${{ "%.2f"|format(bill.amount_due) }}
+            </span>
+
+            <span>
+                {% if bill.image_path %}
+                    <a
+                        href="{{ url_for(
+                            'uploaded_file',
+                            filename=bill.image_path
+                        ) }}"
+                        target="_blank"
+                    >
+                        [ View ]
+                    </a>
+                {% else %}
+                    ---
+                {% endif %}
+            </span>
+        </div>
     {% else %}
-        <p>No current bill due.</p>
-    {% endif %}
+        <p class="empty-message">No bills recorded.</p>
+    {% endfor %}
+</section>
 
-    {% if last_payment %}
-        <p>
-            <strong>Last paid:</strong>
-            {{ last_payment.payment_date }} —
-            ${{ "%.2f"|format(last_payment.amount_paid) }}
-        </p>
-    {% endif %}
-
-    {% if vendor.pmt_url %}
-        [ <a href="{{ vendor.pmt_url }}" target="_blank" rel="noopener">
-             PAY
-        </a>  \
-        <a href="{{ url_for('payment', vendor_id=vendor.id) }}">
-             RECORD
-        </a>  ]
-    {% endif %}
-</div>
 {% endblock %}

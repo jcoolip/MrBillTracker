@@ -4,7 +4,7 @@
 
 <div class="card">
     <h1>Record Payment</h1>
-    <h2>{{ vendor.name }}</h2>
+    <h3>{{ vendor.name }}</h3>
 
     <form
         action="{{ url_for('save_payment', vendor_id=vendor.id) }}"

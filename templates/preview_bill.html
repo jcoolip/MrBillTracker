@@ -3,13 +3,12 @@
 {% block content %}
     <h1>Final review</h1>
 
-    <p><strong>Vendor:</strong> {{ bill.vendor }}</p>
+    <p><strong>Vendor:</strong> {{ bill.vendor_name }}</p>
     <p><strong>Amount:</strong> ${{ bill.amount_due }}</p>
-    <p><strong>Due Date:</strong> {{ bill.due_date }}</p>
     <p><strong>Bill Date:</strong> {{ bill.bill_date }}</p>
+    <p><strong>Due Date:</strong> {{ bill.due_date }}</p>
     <p><strong>Notes:</strong> {{ bill.notes }}</p>
-    <p><strong>Image Path:</strong> {{ bill.image_path }}</p>
-    <p><strong>Image:</strong> <img src="{{ url_for('uploaded_file', filename=bill.image_path) }}"></p>
+    <p><strong>Image:</strong><img class="bill-preview" src="{{ url_for('uploaded_file', filename=bill.image_path) }}"></p>
 
     <form action="{{ url_for('confirm_bill') }}" method="POST">
         <input type="hidden" name="vendor_id" value="{{ bill.vendor_id }}">

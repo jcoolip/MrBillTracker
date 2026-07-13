@@ -2,16 +2,27 @@
 
 {% block content %}
 
-<!--<h1>Dashboard</h1>-->
-
 {% for vendor in vendors %}
 
+<a href="{{ url_for('view_vendor', vendor_id=vendor.id) }}">
 <div class="card">
+    <h3>
+        {{ vendor.name }}
+    </h3>
 
-    <h3><a href="{{ url_for('view_vendor', vendor_id=vendor.id) }}">{{ vendor.name }}</a></h3>
-    <p>{{ vendor.total_owed }}</p>
+    <div class="display-row">
+        <span class="display-label">Balance</span>
 
+        <span class="display-value">
+            ${{ "%.2f"|format(vendor.total_owed) }}
+        </span>
+        <span class="display-label">Due Date</span>
+        <span class="display-value">
+            {{ vendor.next_due_date }}
+        </span>
+    </div>
 </div>
+</a>
 
 {% endfor %}
 

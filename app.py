@@ -94,7 +94,8 @@ def index():
             vendors.*,
             COALESCE(bill_totals.total_billed, 0)
             - COALESCE(payment_totals.total_paid, 0)
-            AS total_owed
+            AS total_owed,
+            due_dates.next_due_date
         FROM vendors
 
         LEFT JOIN (
@@ -115,13 +116,39 @@ def index():
         ) AS payment_totals
             ON vendors.id = payment_totals.vendor_id
 
-        ORDER BY total_owed DESC, vendors.name
-        """).fetchall()
+        LEFT JOIN (
+            SELECT
+                vendor_id,
+                MIN(due_date) AS next_due_date
+            FROM bills
+            GROUP BY vendor_id
+        ) AS due_dates
+            ON vendors.id = due_dates.vendor_id
 
+        ORDER BY
+            due_dates.next_due_date IS NULL,
+            due_dates.next_due_date,
+            vendors.name
+        """).fetchall()
 
     conn.close()
 
-    return render_template("index.html", vendors=vendors)
+    formatted_vendors = []
+    for vendor in vendors:
+        vendor = dict(vendor)
+
+        if vendor["next_due_date"]:
+            vendor["next_due_date"] = datetime.strptime(
+                vendor["next_due_date"],
+                "%Y-%m-%d"
+            ).strftime("%m/%d")
+
+        if vendor["total_owed"] <= 0:
+            vendor["next_due_date"] = "---"
+
+        formatted_vendors.append(vendor)
+
+    return render_template("index.html", vendors=formatted_vendors)
 
 @app.route("/vendors/<int:vendor_id>")
 def view_vendor(vendor_id):
@@ -206,6 +233,12 @@ def view_vendor(vendor_id):
     if total_owed > 0 and current_bill:
         next_due_date = current_bill["due_date"]
 
+    if next_due_date is not None:
+        next_due_date = datetime.strptime(
+            next_due_date,
+            "%Y-%m-%d"
+        ).strftime("%m/%d")
+
     return render_template(
         "vendor.html",
         vendor=vendor,
@@ -285,8 +318,18 @@ def preview_bill():
         uploaded_file.save(save_path)
         image_path = filename
 
+    conn = get_db_conn()
+
+    vendor_id = request.form["vendor_id"]
+    vendor = conn.execute("""
+        SELECT name
+        FROM vendors
+        WHERE id = ?
+        """, (vendor_id,)).fetchone()
+
     bill = {
-        "vendor_id": request.form["vendor_id"],
+        "vendor_id": vendor_id,
+        "vendor_name": vendor["name"],
         "amount_due": request.form["amount_due"],
         "due_date": request.form["due_date"],
         "bill_date": request.form.get("bill_date"),
