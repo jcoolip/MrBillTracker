@@ -1,5 +1,8 @@
 # local db stuff
-.db
+*.db
+
+# uploads folder for bills
+uploads/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

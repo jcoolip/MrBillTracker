@@ -32,7 +32,7 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS payments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            vendor_id TEXT NOT NULL,
+            vendor_id INTEGER NOT NULL,
             payment_date TEXT NOT NULL,
             amount_paid REAL NOT NULL,
             confirmation_number TEXT,
@@ -64,7 +64,10 @@ def init_vendors():
 
     vendors = [
         ("Beckley Water Company", "https://www.eonlinebill.com/bapp/beckley/indexl"),
-        ("Appalachian Power", "https://www.appalachianpower.com/account/bills/")
+        ("Appalachian Power", "https://www.appalachianpower.com/account/bills/"),
+        ("Frontier Communications", "https://ssoparent.frontier.com/pages/login"),
+        ("Mountaineer Gas", "https://www.doxo.com/bill-pay/mountaineergas"),
+        ("Disney+", "https://www.disneyplus.com/commerce/billing")
     ]
 
     conn.executemany("""
@@ -118,27 +121,7 @@ def index():
 
     conn.close()
 
-    # formatted_bills = []
-
-    # for bill in bills:
-    #     bill = dict(bill)
-    #     bill["due_date"] = datetime.strptime(
-    #         bill["due_date"], "%Y-%m-%d"
-    #     ).strftime("%m/%d")
-    #     formatted_bills.append(bill)
-
     return render_template("index.html", vendors=vendors)
-
-@app.route("/vendors")
-def vendors():
-    conn = get_db_conn()
-
-    vendors = conn.execute("""
-        SELECT *
-        FROM vendors
-        """).fetchall()
-
-    return render_template("vendor", vendors=vendors)
 
 @app.route("/vendors/<int:vendor_id>")
 def view_vendor(vendor_id):
