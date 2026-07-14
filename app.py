@@ -174,6 +174,13 @@ def index():
 def view_vendor(vendor_id):
     conn = get_db_conn()
 
+    payments = conn.execute("""
+        SELECT *
+        FROM payments
+        WHERE vendor_id = ?
+        ORDER BY payment_date
+        """, (vendor_id,)).fetchall()
+
     vendor = conn.execute("""
         SELECT id, name, pmt_url
         FROM vendors
@@ -261,6 +268,7 @@ def view_vendor(vendor_id):
 
     return render_template(
         "vendor.html",
+        payments=payments,
         vendor=vendor,
         total_owed=total_owed,
         next_due_date=next_due_date,

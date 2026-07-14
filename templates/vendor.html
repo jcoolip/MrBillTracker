@@ -95,4 +95,28 @@
     {% endfor %}
 </section>
 
+<section class="bill-history-panel">
+    <h2>Payments</h2>
+
+    <div class="bill-list-header">
+        <span>Payment Date</span>
+        <span>Amount</span>
+    </div>
+
+    {% for pay in payments %}
+        <div class="bill-list-row">
+            <span>{{ pay.payment_date }}</span>
+
+            <span>
+                ${{ "%.2f"|format(pay.amount_paid) }}
+            </span>
+        </div>
+    {% else %}
+        <p class="empty-message">No payments recorded.</p>
+    {% endfor %}
+</section>
+
+
+
+
 {% endblock %}
