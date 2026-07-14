@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 app.config["DATABASE"] = "bill_tracker.db"
-app.config["APP_NAME"] = "Mr. Bill Tracker"
+app.config["APP_NAME"] = "HOME ACCOUNT TERMINAL"
 
 
 def get_db_conn():
@@ -170,71 +170,6 @@ def index():
         vendors=formatted_vendors,
     )
 
-# @app.route("/")
-# def index():
-#     conn = get_db_conn()
-
-#     vendors = conn.execute("""
-#         SELECT
-#             vendors.*,
-#             COALESCE(bill_totals.total_billed, 0)
-#             - COALESCE(payment_totals.total_paid, 0)
-#             AS total_owed,
-#             due_dates.next_due_date
-#         FROM vendors
-
-#         LEFT JOIN (
-#             SELECT
-#                 vendor_id,
-#                 SUM(amount_due) AS total_billed
-#             FROM bills
-#             GROUP BY vendor_id
-#         ) AS bill_totals
-#             ON vendors.id = bill_totals.vendor_id
-
-#         LEFT JOIN (
-#             SELECT
-#                 vendor_id,
-#                 SUM(amount_paid) as total_paid
-#             FROM payments
-#             GROUP BY vendor_id
-#         ) AS payment_totals
-#             ON vendors.id = payment_totals.vendor_id
-
-#         LEFT JOIN (
-#             SELECT
-#                 vendor_id,
-#                 MIN(due_date) AS next_due_date
-#             FROM bills
-#             GROUP BY vendor_id
-#         ) AS due_dates
-#             ON vendors.id = due_dates.vendor_id
-
-#         ORDER BY
-#             due_dates.next_due_date IS NULL,
-#             due_dates.next_due_date,
-#             vendors.name
-#         """).fetchall()
-
-#     conn.close()
-
-#     formatted_vendors = []
-#     for vendor in vendors:
-#         vendor = dict(vendor)
-
-#         if vendor["next_due_date"]:
-#             vendor["next_due_date"] = datetime.strptime(
-#                 vendor["next_due_date"],
-#                 "%Y-%m-%d"
-#             ).strftime("%m/%d")
-
-#         if vendor["total_owed"] <= 0:
-#             vendor["next_due_date"] = "---"
-
-#         formatted_vendors.append(vendor)
-
-#     return render_template("index.html", vendors=formatted_vendors)
-
 @app.route("/vendors/<int:vendor_id>")
 def view_vendor(vendor_id):
     conn = get_db_conn()
@@ -379,6 +314,27 @@ def save_payment(vendor_id):
 
     return redirect(url_for("view_vendor", vendor_id=vendor_id))
 
+@app.route("/vendors/add")
+def add_vendor():
+    return render_template("add_vendor.html")
+
+@app.route("/vendors/add", methods=["POST"])
+def save_vendor():
+    conn = get_db_conn()
+
+    conn.execute("""
+        INSERT INTO vendors (name, pmt_url)
+        VALUES (?, ?)
+    """, (
+        request.form["name"],
+        request.form.get("pmt_url"),
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("index"))
+
 @app.route("/add")
 def add_bill():
     conn = get_db_conn()
@@ -459,7 +415,6 @@ def confirm_bill():
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
-
 
 
 if __name__ == "__main__":
