@@ -34,7 +34,7 @@
                     target="_blank"
                     rel="noopener"
                 >
-                    [ Pay ]
+                    [ Pay Online ]
                 </a>
             {% endif %}
 
@@ -42,7 +42,7 @@
                 class="action-button"
                 href="{{ url_for('payment', vendor_id=vendor.id) }}"
             >
-                [ Record ]
+                [ Record Payment ]
             </a>
         </div>
     </div>
@@ -95,18 +95,19 @@
     {% endfor %}
 </section>
 
-<section class="bill-history-panel">
+<section class="payment-history-panel">
     <h2>Payments</h2>
 
-    <div class="bill-list-header">
+    <div class="payment-list-header">
         <span>Payment Date</span>
+        <span></span>
         <span>Amount</span>
     </div>
 
     {% for pay in payments %}
-        <div class="bill-list-row">
+        <div class="payment-list-row">
             <span>{{ pay.payment_date }}</span>
-
+            <span></span>
             <span>
                 ${{ "%.2f"|format(pay.amount_paid) }}
             </span>
@@ -115,6 +116,15 @@
         <p class="empty-message">No payments recorded.</p>
     {% endfor %}
 </section>
+
+<div class="bottom-actions">
+    <a class="button add-button" href="{{ url_for('add_bill', vendor_id=vendor.id) }}">
+        [ New Bill ]
+    </a>
+    <a class="button add-button" href="{{ url_for('edit_vendor', vendor_id=vendor.id) }}">
+        [ Edit Vendor ]
+    </a>
+</div>
 
 
 

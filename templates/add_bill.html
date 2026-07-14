@@ -7,7 +7,8 @@
         <label for="vendor_id">Vendor</label>
         <select name="vendor_id">
             {% for vendor in vendors %}
-            <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+            <option value="{{ vendor.id }}"
+                {% if vendor.id == selected_vendor %}selected{% endif %}>{{ vendor.name }}</option>
             {% endfor %}
         </select>
 

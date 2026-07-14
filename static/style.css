@@ -373,6 +373,7 @@ input[type="file"] {
 }
 
 .vendor-summary,
+.payment-history-panel,
 .bill-history-panel {
     margin-bottom: 1.5rem;
     padding: 1.25rem;
@@ -393,6 +394,7 @@ input[type="file"] {
 }
 
 .vendor-summary h1,
+.payment-history-panel h2,
 .bill-history-panel h2 {
     margin-top: 0;
 }
@@ -476,6 +478,8 @@ input[type="file"] {
         );
 }
 
+.payment-list-header,
+.payment-list-row,
 .bill-list-header,
 .bill-list-row {
     display: grid;
@@ -489,6 +493,7 @@ input[type="file"] {
     align-items: center;
 }
 
+.payment-list-header,
 .bill-list-header {
     padding: 0.75rem 0;
 
@@ -501,11 +506,13 @@ input[type="file"] {
     text-transform: uppercase;
 }
 
+.payment-list-row,
 .bill-list-row {
     padding: 0.8rem 0;
     border-bottom: 1px dashed rgba(138, 100, 29, 0.35);
 }
 
+.payment-list.row:last-child,
 .bill-list-row:last-child {
     border-bottom: none;
 }
@@ -538,10 +545,12 @@ input[type="file"] {
         grid-template-columns: 1fr;
     }
 
+    .payment-list-header,
     .bill-list-header {
         display: none;
     }
 
+    .payment-list-row,
     .bill-list-row {
         grid-template-columns: 1fr auto;
         gap: 0.35rem 1rem;

@@ -1,6 +1,7 @@
 import os
 import sqlite3
 from datetime import datetime
+from ssl import get_default_verify_paths
 
 from flask import Flask, redirect, render_template, request, url_for, send_from_directory
 from werkzeug.utils import secure_filename
@@ -343,6 +344,44 @@ def save_vendor():
 
     return redirect(url_for("index"))
 
+@app.route("/vendors/<int:vendor_id>/edit")
+def edit_vendor(vendor_id):
+    conn = get_db_conn()
+
+    vendor = conn.execute("""
+        SELECT *
+        FROM vendors
+        WHERE id = ?
+        """,(vendor_id,)).fetchone()
+
+    conn.close()
+
+    if vendor is None:
+        return "Vendor not found", 404
+
+    return render_template("edit_vendor.html", vendor=vendor)
+
+@app.route("/vendors/<int:vendor_id>/edit", methods=["POST"])
+def confirm_edit_vendor(vendor_id):
+    conn = get_db_conn()
+
+    conn.execute("""
+        UPDATE vendors
+        SET
+            name = ?,
+            pmt_url = ?
+        WHERE id = ?
+        """, (
+            request.form["name"],
+            request.form["pmt_url"],
+            vendor_id
+        ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("view_vendor", vendor_id=vendor_id))
+
 @app.route("/add")
 def add_bill():
     conn = get_db_conn()
@@ -353,7 +392,9 @@ def add_bill():
 
     conn.close()
 
-    return render_template("add_bill.html", vendors=vendors)
+    selected_vendor = request.args.get("vendor_id", type=int)
+
+    return render_template("add_bill.html", vendors=vendors, selected_vendor=selected_vendor)
 
 @app.route("/add", methods=["POST"])
 def preview_bill():
