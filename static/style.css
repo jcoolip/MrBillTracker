@@ -53,6 +53,44 @@ a:focus-visible {
     text-shadow: 0 0 8px rgba(255, 176, 0, 0.65);
 }
 
+.flash-stack {
+    margin-bottom: 1rem;
+}
+
+.flash-message {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--amber);
+    background: var(--panel-black);
+    color: var(--amber-bright);
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(255, 176, 0, 0.12);
+}
+
+.flash-prefix {
+    color: var(--text-muted);
+    margin-right: 0.45rem;
+}
+
+.flash-success {
+    border-left-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 10px rgba(99, 212, 113, 0.14);
+}
+
+.flash-error {
+    border-left-color: var(--red);
+    color: var(--red);
+    box-shadow: 0 0 10px rgba(255, 77, 61, 0.14);
+}
+
+.flash-info {
+    border-left-color: var(--commodore-blue);
+    color: var(--commodore-light);
+}
+
 .header-inner {
     width: min(100% - 2rem, var(--content-width));
     margin: 0 auto;

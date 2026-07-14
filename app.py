@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime
 from ssl import get_default_verify_paths
 
-from flask import Flask, redirect, render_template, request, url_for, send_from_directory
+from flask import Flask, flash, redirect, render_template, request, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -11,6 +11,7 @@ app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 app.config["DATABASE"] = "bill_tracker.db"
 app.config["APP_NAME"] = "HOME ACCOUNT TERMINAL"
+app.config["SECRET_KEY"] = "asdfjkl;"
 
 
 def get_db_conn():
@@ -29,6 +30,14 @@ def init_db():
             pmt_url TEXT
         )
     """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            sort_order INTEGER
+        )
+        """)
 
     conn.execute("""
         CREATE TABLE IF NOT EXISTS payments (
@@ -321,6 +330,7 @@ def save_payment(vendor_id):
     conn.commit()
     conn.close()
 
+    flash("PAYMENT RECV'D", "success")
     return redirect(url_for("view_vendor", vendor_id=vendor_id))
 
 @app.route("/vendors/add")
@@ -342,6 +352,7 @@ def save_vendor():
     conn.commit()
     conn.close()
 
+    flash("VENDOR ADDITION SUCCESS", "success")
     return redirect(url_for("index"))
 
 @app.route("/vendors/<int:vendor_id>/edit")
@@ -380,7 +391,29 @@ def confirm_edit_vendor(vendor_id):
     conn.commit()
     conn.close()
 
+    flash("VENDOR EDIT SUCCESS", "success")
     return redirect(url_for("view_vendor", vendor_id=vendor_id))
+
+@app.route("/category/add")
+def add_category():
+    return render_template("add_category.html")
+
+@app.route("/category/add", methods=["POST"])
+def save_category():
+    conn = get_db_conn()
+
+    name = request.form["name"]
+
+    conn.execute("""
+        INSERT INTO categories (name)
+        VALUES (?)
+    """, (name,))
+
+    conn.commit()
+    conn.close()
+
+    flash("CATEGORY ADDITION SUCCESS", "success")
+    return redirect(url_for("index"))
 
 @app.route("/add")
 def add_bill():
@@ -459,6 +492,7 @@ def confirm_bill():
     conn.commit()
     conn.close()
 
+    flash("BILL ACCEPTED", "success")
     return redirect(url_for("index"))
 
 @app.route("/uploads/<filename>")

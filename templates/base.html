@@ -15,6 +15,18 @@
     </header>
 
     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+               {% if messages %}
+                   <div class="flash-stack">
+                       {% for category, message in messages %}
+                           <div class="flash-message flash-{{ category }}">
+                               <span class="flash-prefix">SYSTEM //</span>
+                               {{ message }}
+                           </div>
+                       {% endfor %}
+                   </div>
+               {% endif %}
+           {% endwith %}
         {% block content %}
         {% endblock %}
     </main>
