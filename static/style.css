@@ -10,6 +10,15 @@
     --green: #63d471;
     --red: #ff4d3d;
 
+    --cream: #d8c7a2;
+    --tan: #9f8159;
+    --brown: #5f351e;
+    --brown-dark: #2c170d;
+
+    --atari-orange: #d96b22;
+    --commodore-blue: #4f74a8;
+    --commodore-light: #8da6c8;
+
     --text-muted: #9b8d70;
     --border: #4a3817;
 
@@ -27,8 +36,7 @@ html {
 body {
     margin: 0;
     min-height: 100vh;
-    background:
-        radial-gradient(circle at top, #1a160d 0, var(--case-black) 45%);
+    background: var(--case-black);
     color: var(--amber);
     font-family: "Courier New", Courier, monospace;
     line-height: 1.5;
@@ -41,7 +49,7 @@ a {
 
 a:hover,
 a:focus-visible {
-    color: #ffe1a0;
+    color: var(--commodore-blue);
     text-shadow: 0 0 8px rgba(255, 176, 0, 0.65);
 }
 
@@ -83,18 +91,47 @@ a:focus-visible {
 }
 
 .site-header {
-    border-bottom: 2px solid var(--border);
+    /*border-bottom: 2px solid var(--border);*/
     background: rgba(8, 7, 5, 0.95);
     padding: 1rem;
 }
 
+.site-header::after {
+    content: "";
+    display: block;
+    height: 1px;
+    margin-top: 1rem;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--atari-orange) 0 22%,
+            var(--amber) 22% 44%,
+            var(--commodore-light) 44% 58%,
+            var(--amber) 58% 78%,
+            var(--atari-orange) 78% 100%
+        );
+}
+
 .site-title {
     max-width: var(--content-width);
-    font-size: 2.5rem;
+    font-size: 3rem;
     margin: 0;
     letter-spacing: -0.05em;
-    color: var(--red);
-    text-shadow: 0 0 7px rgba(255, 176, 0, 0.45);
+    color: var(--atari-orange);
+    text-shadow: 0 0 10px rgba(255, 176, 0, 0.65);
+}
+
+.site-title::after {
+    content: "[ HOME ACCOUNT TERMINAL \\ Rev. 0.3 - 2.042a ]";
+    display: block;
+
+    margin-top: 0.2rem;
+
+    color: var(--commodore-blue);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
 }
 
 .nav-menu {
@@ -103,6 +140,39 @@ a:focus-visible {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+}
+
+.info-secondary {
+    color: var(--commodore-light);
+    text-shadow: 0 0 5px rgba(79, 116, 168, 0.28);
+}
+
+.bottom-actions {
+    margin: 2.5rem 0 1rem;
+    text-align: center;
+}
+
+.add-button {
+    display: inline-block;
+
+    min-width: 220px;
+
+    padding: 0.8rem 1.6rem;
+
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+
+    transition:
+        background .2s,
+        box-shadow .2s,
+        transform .15s;
+}
+
+.add-button:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 0 14px rgba(255,176,0,.28);
 }
 
 .nav-menu a,
@@ -144,20 +214,34 @@ h3 {
 
 .card {
     position: relative;
-    margin-bottom: 1rem;
+    margin-bottom: 0.3rem;
     padding: 1rem;
     border: 1px solid var(--border);
-    border-left: 4px solid var(--amber-dim);
+    border-left: 4px solid var(--atari-orange);
     border-radius: 3px;
-    background:
+    /*background:
         linear-gradient(
             180deg,
             var(--panel-raised),
             var(--panel-black)
-        );
+        );*/
     box-shadow:
         inset 0 1px 0 rgba(255, 197, 71, 0.08),
         0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.card2,
+.vendor-summary2,
+.bill-history-panel2 {
+    border-top-color: #6f5427;
+    border-right-color: #2d210f;
+    border-bottom-color: #24190c;
+    border-left-color: var(--amber-dim);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 229, 168, 0.08),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.45),
+        0 8px 18px rgba(0, 0, 0, 0.32);
 }
 
 .card-link {
@@ -190,10 +274,11 @@ h3 {
 }
 
 .display-label {
-    color: var(--text-muted);
+    color: var(--commodore-blue);
     font-size: 0.85rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    opacity: 0.7;
 }
 
 .display-value {
@@ -363,6 +448,32 @@ input[type="file"] {
 
     box-shadow:
         0 0 12px rgba(255, 176, 0, 0.25);
+}
+
+.button-secondary {
+    background:
+        linear-gradient(
+            180deg,
+            #d7c7a5,
+            #9c845f
+        );
+
+    color: #20170d;
+    border-color: #ead9b7;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 3px 0 #5a4327;
+}
+
+.button-secondary:hover {
+    color: #000;
+    background:
+        linear-gradient(
+            180deg,
+            #ead9b7,
+            #ad9167
+        );
 }
 
 .bill-list-header,
