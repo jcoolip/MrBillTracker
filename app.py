@@ -26,8 +26,12 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS vendors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category_id INTEGER,
             name TEXT NOT NULL UNIQUE,
-            pmt_url TEXT
+            pmt_url TEXT,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT,
+            FOREIGN KEY (category_id) REFERENCES categories(id)
         )
     """)
 
@@ -35,7 +39,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
-            sort_order INTEGER
+            sort_order INTEGER DEFAULT 100
         )
         """)
 
@@ -73,17 +77,39 @@ def init_vendors():
     conn = get_db_conn()
 
     vendors = [
-        ("Beckley Water Company", "https://www.eonlinebill.com/bapp/beckley/indexl"),
-        ("Appalachian Power", "https://www.appalachianpower.com/account/bills/"),
-        ("Frontier Communications", "https://ssoparent.frontier.com/pages/login"),
-        ("Mountaineer Gas", "https://www.doxo.com/bill-pay/mountaineergas"),
-        ("Disney+", "https://www.disneyplus.com/commerce/billing"),
-        ("Beckley Sanitary", "https://beckleywv.municipalonlinepayments.com/beckleywv")
+        (1, "Beckley Water Company", "https://www.eonlinebill.com/bapp/beckley/indexl"),
+        (1, "Appalachian Power", "https://www.appalachianpower.com/account/bills/"),
+        (1, "Frontier Communications", "https://ssoparent.frontier.com/pages/login"),
+        (1, "Mountaineer Gas", "https://www.doxo.com/bill-pay/mountaineergas"),
+        (2, "Disney+", "https://www.disneyplus.com/commerce/billing"),
+        (1, "Beckley Sanitary", "https://beckleywv.municipalonlinepayments.com/beckleywv")
+    ]
+
+    cats = [
+        ("Housing", 10),
+        ("Utilities", 20),
+        ("Internet", 30),
+        ("Mobile", 40),
+        ("Insurance", 50),
+        ("Credit Cards", 60),
+        ("Loans", 70),
+        ("Streaming", 80),
+        ("Subscriptions", 90),
+        ("Transportation", 100),
+        ("Healthcare", 110),
+        ("Shopping", 120),
+        ("Entertainment", 130),
+        ("Other", 999)
     ]
 
     conn.executemany("""
-        INSERT OR IGNORE INTO vendors (name, pmt_url)
+        INSERT OR IGNORE INTO categories (name, sort_order)
         VALUES (?, ?)
+    """, cats)
+
+    conn.executemany("""
+        INSERT OR IGNORE INTO vendors (category_id, name, pmt_url)
+        VALUES (?, ?, ?)
     """, vendors)
 
     conn.commit()
