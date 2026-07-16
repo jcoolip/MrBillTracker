@@ -85,7 +85,7 @@ def init_vendors():
         (2, "Beckley Sanitary", "https://beckleywv.municipalonlinepayments.com/beckleywv"),
         (1, "Household", "https://www.google.com/finance"),
         (4, "AT&T", "https://www.att.com/my/#/login"),
-        (11, "Geico", "https://www.geico.com/myaccount/"),
+        (5, "Geico", "https://www.geico.com/myaccount/"),
         (8, "Youtubetv", "https://www.youtube.com/paid_memberships")
     ]
 
