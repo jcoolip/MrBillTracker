@@ -27,7 +27,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS vendors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             category_id INTEGER,
-            name TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL UNIQUE COLLATE NOCASE,
             pmt_url TEXT,
             is_active INTEGER NOT NULL DEFAULT 1,
             updated_at TEXT,
@@ -129,6 +129,28 @@ init_uploads()
 @app.route("/admin")
 def admin():
     return render_template("admin.html")
+
+@app.route("/admin/manage-vendors")
+def manage_vendors():
+    conn = get_db_conn()
+
+    vendors = conn.execute("""
+        SELECT * FROM vendors
+        ORDER BY name
+    """).fetchall()
+
+    return render_template("manage_vendors.html", vendors=vendors)
+
+@app.route("/admin/manage-categories")
+def manage_categories():
+    conn = get_db_conn()
+
+    categories = conn.execute("""
+        SELECT * FROM categories
+        ORDER BY sort_order
+    """).fetchall()
+
+    return render_template("manage_categories.html", categories=categories)
 
 @app.route("/")
 def index():
@@ -417,21 +439,41 @@ def save_payment(vendor_id):
 
 @app.route("/vendors/add")
 def add_vendor():
-    return render_template("add_vendor.html")
+
+    conn = get_db_conn()
+
+    categories = conn.execute("""
+        SELECT *
+        FROM categories
+    """).fetchall()
+
+    return render_template("add_vendor.html", categories=categories)
 
 @app.route("/vendors/add", methods=["POST"])
 def save_vendor():
     conn = get_db_conn()
 
-    conn.execute("""
-        INSERT INTO vendors (name, pmt_url)
-        VALUES (?, ?)
-    """, (
-        request.form["name"],
-        request.form.get("pmt_url"),
-    ))
+    category_id = request.form.get("category_id")
+    name = request.form["name"].strip()
+    pmt_url = request.form.get("pmt_url")
 
-    conn.commit()
+    try:
+        conn.execute("""
+            INSERT INTO vendors (category_id, name, pmt_url)
+            VALUES (?, ?, ?)
+        """, (
+            category_id,
+            name,
+            pmt_url
+        ))
+
+        conn.commit()
+    except sqlite3.IntegrityError:
+        flash(f"VENDOR DUPLICATE :: {name}", "error" )
+        return redirect(url_for("add_vendor"))
+    finally:
+        conn.close()
+
     conn.close()
 
     flash("VENDOR ADDITION SUCCESS", "success")
@@ -447,55 +489,110 @@ def edit_vendor(vendor_id):
         WHERE id = ?
         """,(vendor_id,)).fetchone()
 
+    categories = conn.execute("""
+        SELECT *
+        FROM categories
+        ORDER BY sort_order
+        """).fetchall()
+
     conn.close()
 
     if vendor is None:
         return "Vendor not found", 404
 
-    return render_template("edit_vendor.html", vendor=vendor)
+    return render_template("edit_vendor.html", vendor=vendor, categories=categories)
 
 @app.route("/vendors/<int:vendor_id>/edit", methods=["POST"])
 def confirm_edit_vendor(vendor_id):
     conn = get_db_conn()
 
-    conn.execute("""
-        UPDATE vendors
-        SET
-            name = ?,
-            pmt_url = ?
-        WHERE id = ?
-        """, (
-            request.form["name"],
-            request.form["pmt_url"],
-            vendor_id
-        ))
+    category = request.form["category"]
+    name = request.form["name"].strip()
+    pmt_url = request.form["pmt_url"]
 
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute("""
+            UPDATE vendors
+            SET
+                category = ?,
+                name = ?,
+                pmt_url = ?
+            WHERE id = ?
+            """, (
+                category,
+                name,
+                pmt_url,
+                vendor_id
+            ))
+
+        conn.commit()
+    except sqlite3.IntegrityError:
+        flash(f"VENDOR DUPLICATE :: {name}", "error")
+        return redirect(url_for("edit_vendor", vendor_id=vendor_id))
+    finally:
+        conn.close()
 
     flash("VENDOR EDIT SUCCESS", "success")
     return redirect(url_for("view_vendor", vendor_id=vendor_id))
 
 @app.route("/category/add")
 def add_category():
-    return render_template("add_category.html")
+
+    conn = get_db_conn()
+
+    categories = conn.execute("""
+        SELECT *
+        FROM categories
+        """).fetchall()
+
+    return render_template("add_category.html", categories=categories)
 
 @app.route("/category/add", methods=["POST"])
 def save_category():
     conn = get_db_conn()
 
-    name = request.form["name"]
+    name = request.form["name"].strip()
+    sort_order = request.form["sort_order"]
 
-    conn.execute("""
-        INSERT INTO categories (name)
-        VALUES (?)
-    """, (name,))
+    try:
+        conn.execute("""
+            INSERT INTO categories (name, sort_order)
+            VALUES (?, ?)
+        """, (name,sort_order))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    except sqlite3.IntegrityError:
+        flash(f"CATEGORY DUPLICATE :: {name}", "error")
+        return redirect(url_for("add_category"))
+    finally:
+        conn.close()
 
     flash("CATEGORY ADDITION SUCCESS", "success")
     return redirect(url_for("index"))
+
+@app.route("/category/<int:category_id>/edit")
+def edit_category(category_id):
+    conn = get_db_conn()
+
+    category = conn.execute("""
+        SELECT *
+        FROM categories
+        WHERE id = ?
+        """, (category_id,)).fetchone()
+
+    categories = conn.execute("""
+        SELECT *
+        FROM categories
+        ORDER BY sort_order
+        """).fetchall()
+
+    conn.close()
+
+    if category is None:
+        return "Category not found", 404
+
+    return render_template("edit_category.html", category=category, categories=categories)
+
 
 @app.route("/add")
 def add_bill():

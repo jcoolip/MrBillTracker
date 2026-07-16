@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "macros.html" import terminal_header %}
+
+{% block content %}
+
+<section class="panel form-screen">
+    {{ terminal_header("\\\\ EDIT", "CATEGORY", "h1") }}
+
+    <form method="POST">
+        <label for="category_name">Category Name</label>
+        <input type="text" id="name" name="name" value="{{ category.name }}" required>
+
+        <label for="pmt_url">Sort Order</label>
+        <input type="text" id="sort_order" name="sort_order" value="{{ category.sort_order }}">
+
+        <button type="submit">Confirm Edit</button>
+    </form>
+</section>
+    <section class="category-panel">
+
+        <div class="category-heading">
+            {{ terminal_header("\\\\ REFERENCE ", "SORT ORDER") }}
+        </div>
+
+        {% for category in categories %}
+            <div class="vendor-row">
+
+                <span class="vendor-row-name">
+                    {{ category.name }}
+                </span>
+
+                <span class="vendor-row-date">
+                </span>
+
+                <span class="vendor-row-date">
+                    {{ category.sort_order }}
+                </span>
+
+            </div>
+
+        {% endfor %}
+
+    </section>
+
+{% endblock %}

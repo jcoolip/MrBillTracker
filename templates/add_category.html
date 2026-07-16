@@ -1,8 +1,16 @@
+{% extends "base.html" %}
+{% from "macros.html" import terminal_header, terminal_button %}
+
+{% block content %}
+
 <section class="panel form-screen">
-    {{ terminal_header("NEW CATEGORY", "h1") }}
+    {{ terminal_header("\\\\ INSERT", "CATEGORY") }}
 
-
-    <form method="POST">
+    <form
+        action="{{ url_for('save_category') }}"
+        method="POST"
+        enctype="multipart/form-data"
+    >
         <label for="name">Category Name</label>
         <input
             type="text"
@@ -11,8 +19,41 @@
             required
         >
 
+        <label for="sort_order">Sort Order</label>
+        <input
+            type="text"
+            id="sort_order"
+            name="sort_order"
+        >
+
         <button type="submit">Add Category</button>
     </form>
-</div>
+</section>
+
+<section class="category-panel">
+
+    <div class="category-heading">
+        {{ terminal_header("\\\\ REFERENCE ", "SORT ORDER") }}
+    </div>
+
+    {% for category in categories %}
+        <div class="vendor-row">
+
+            <span class="vendor-row-name">
+                {{ category.name }}
+            </span>
+
+            <span class="vendor-row-date">
+            </span>
+
+            <span class="vendor-row-date">
+                {{ category.sort_order }}
+            </span>
+
+        </div>
+
+    {% endfor %}
+
+</section>
 
 {% endblock %}
