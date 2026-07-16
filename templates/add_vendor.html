@@ -1,10 +1,5 @@
-{% extends "base.html" %}
-
-{% block content %}
-
-<div class="card">
-    <h1>Add Vendor</h1>
-    <h3></h3>
+<section class="panel form-screen">
+    {{ terminal_header("NEW VENDOR", "h1") }}
 
     <form
         action="{{ url_for('save_vendor') }}"

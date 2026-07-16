@@ -1,50 +1,53 @@
 {% extends "base.html" %}
+{% from "macros.html" import terminal_header, terminal_button %}
 
 {% block content %}
 
 {% for category in categories %}
-<section class="category-panel">
+    <section class="category-panel">
 
-    <div class="category-heading">
-        <h2 class="terminal-heading">[ {{ category.name }} \\ ]</h2>
+        <div class="category-heading">
+            {{ terminal_header("\\\\ CATEGORY ", category.name) }}
 
-        <span class="category-total">
-            ${{ "%.2f"|format(category.total_owed) }}
-        </span>
-    </div>
+            <span class="category-total
+                {% if category.total_owed <= 0 %}zero{% endif %}
+            ">
+                ${{ "%.2f"|format(category.total_owed) }}
+            </span>
+        </div>
 
-    {% for vendor in category.vendors %}
-        <a
-            class="vendor-row-link"
-            href="{{ url_for('view_vendor', vendor_id=vendor.id) }}"
-        >
-            <div class="vendor-row">
+        {% for vendor in category.vendors %}
+            <a
+                class="vendor-row-link"
+                href="{{ url_for('view_vendor', vendor_id=vendor.id) }}"
+            >
+                <div class="vendor-row">
 
-                <span class="vendor-row-name">
-                    {{ vendor.name }}
-                </span>
+                    <span class="vendor-row-name">
+                        {{ vendor.name }}
+                    </span>
 
-                <span class="vendor-row-date">
-                    {{ vendor.next_due_date }}
-                </span>
+                    <span class="vendor-row-date">
+                        {{ vendor.next_due_date }}
+                    </span>
 
-                <span
-                    class="vendor-row-balance
-                    {% if vendor.total_owed <= 0 %}status-paid{% endif %}"
-                >
-                    ${{ "%.2f"|format(vendor.total_owed) }}
-                </span>
+                    <span class="
+                        vendor-row-balance
+                        {% if vendor.total_owed <= 0 %}zero{% endif %}
+                    ">
+                        ${{ "%.2f"|format(vendor.total_owed) }}
+                    </span>
 
-            </div>
-        </a>
-    {% endfor %}
+                </div>
+            </a>
+        {% endfor %}
 
-</section>
+    </section>
 {% endfor %}
 
 <div class="bottom-actions">
     <a class="button add-button" href="{{ url_for('add_bill') }}">
-        [ New Bill ]
+        {{ terminal_button("New Bill") }}
     </a>
 </div>
 

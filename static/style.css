@@ -120,7 +120,7 @@ h3 {
 }
 
 .site-title::after {
-    content: "[ HOME ACCOUNT TERMINAL \\ Rev. 0.3 - 2.042a ]";
+    content: "[ HOME ACCOUNT TERMINAL \\ Rev. 0.3.2 - 3.42a ]";
     display: block;
 
     margin-top: 0.2rem;
@@ -166,7 +166,6 @@ main {
 
 .panel,
 .card,
-form,
 .vendor-summary,
 .payment-history-panel,
 .bill-history-panel,
@@ -191,7 +190,7 @@ form,
    Terminal Headings
    ========================================================= */
 
-.terminal-heading {
+.terminal-header {
     display: flex;
     align-items: center;
     gap: 1.4rem;
@@ -215,7 +214,7 @@ form,
     white-space: nowrap;
 }
 
-.terminal-heading::after {
+.terminal-header::after {
     content: "";
     flex: 1;
 
@@ -363,6 +362,24 @@ button:focus-visible,
     letter-spacing: 0.06em;
 }
 
+.terminal-button-label {
+    color: var(--amber-bright);
+}
+
+.terminal-button-suffix {
+    color: var(--commodore-light);
+
+    font-size: .62em;
+    font-weight: normal;
+    letter-spacing: .18em;
+    position: relative;
+    top: .05em;
+    opacity: .55;
+
+    text-shadow:
+        0 0 5px rgba(79,116,168,.25);
+}
+
 .add-button {
     min-width: 220px;
     padding: 0.8rem 1.6rem;
@@ -416,6 +433,9 @@ button:focus-visible,
     text-align: center;
 }
 
+.screen-content {
+    padding: 1.25rem;
+}
 
 /* =========================================================
    Flash Messages
@@ -443,8 +463,17 @@ button:focus-visible,
 }
 
 .flash-prefix {
-    margin-right: 0.45rem;
-    color: var(--text-muted);
+    color: var(--commodore-light);
+
+    font-size: .62em;
+    font-weight: normal;
+    letter-spacing: .18em;
+    position: relative;
+    top: .05em;
+    opacity: .75;
+
+    text-shadow:
+        0 0 5px rgba(79,116,168,.25);
 }
 
 .flash-success {
@@ -527,6 +556,22 @@ input[type="file"] {
     padding: 0.55rem;
 }
 
+.form-screen {
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.form-screen > .terminal-header {
+    border-bottom: 1px solid var(--border);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 176, 0, 0.05),
+            rgba(0, 0, 0, 0.15)
+        );
+}
+
 
 /* =========================================================
    Category Dashboard
@@ -537,7 +582,7 @@ input[type="file"] {
     overflow: hidden;
 }
 
-.category-heading {
+.terminal-header {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -553,8 +598,34 @@ input[type="file"] {
         );
 }
 
-.category-heading .terminal-heading {
+.terminal-prefix {
+    color: var(--commodore-light);
+
+    font-size: .62em;
+    font-weight: normal;
+    letter-spacing: .18em;
+    position: relative;
+    top: .05em;
+    opacity: .75;
+
+    text-shadow:
+        0 0 5px rgba(79,116,168,.25);
+}
+
+.terminal-title {
+    color: var(--amber-bright);
+
+    font-size: 1em;
+    font-weight: bold;
+
+    text-shadow:
+        0 0 8px rgba(255,176,0,.55);
+}
+
+.category-heading .terminal-header {
     flex: 1;
+    margin: 0;
+    padding: 0.75rem 1rem;
 }
 
 .category-total {
@@ -636,16 +707,16 @@ input[type="file"] {
    The content beneath receives separate padding.
 */
 
-.vendor-summary > .terminal-heading,
-.payment-history-panel > .terminal-heading,
-.bill-history-panel > .terminal-heading {
+.vendor-summary > .terminal-header,
+.payment-history-panel > .terminal-header,
+.bill-history-panel > .terminal-header {
     border-bottom: 1px solid var(--border);
 
     background:
         linear-gradient(
             180deg,
             rgba(255, 176, 0, 0.05),
-            rgba(0, 0, 0, 0.15)
+            rgba(0,d 0, 0, 0.15)
         );
 }
 
@@ -690,8 +761,8 @@ input[type="file"] {
    Bill and Payment History
    ========================================================= */
 
-.bill-history-panel > :not(.terminal-heading),
-.payment-history-panel > :not(.terminal-heading) {
+.bill-history-panel > :not(.terminal-header),
+.payment-history-panel > :not(.terminal-header) {
     margin-right: 1.25rem;
     margin-left: 1.25rem;
 }
@@ -823,7 +894,7 @@ input[type="file"] {
         text-align: center;
     }
 
-    .terminal-heading {
+    .terminal-header {
         flex-wrap: wrap;
         gap: 0.6rem;
 
@@ -832,34 +903,43 @@ input[type="file"] {
         white-space: normal;
     }
 
-    .terminal-heading::after {
+    .terminal-header::after {
         min-width: 1.25rem;
     }
 
     .category-heading {
-        align-items: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+
+    border-bottom: 1px solid var(--border);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 176, 0, 0.05),
+            rgba(0, 0, 0, 0.15)
+        );
+    }
+
+    .category-heading .terminal-header {
+        min-width: 0;
     }
 
     .category-total {
-        padding-right: 0.75rem;
-        font-size: 0.95rem;
+        padding-right: 1rem;
+
+        color: var(--amber-bright);
+        font-size: 1rem;
+        font-weight: bold;
+        white-space: nowrap;
     }
 
-    .vendor-row {
-        grid-template-columns: 1fr auto;
-    }
-
-    .vendor-row-date {
-        grid-column: 1;
-        grid-row: 2;
-
-        text-align: left;
-        font-size: 0.85rem;
-    }
-
-    .vendor-row-balance {
-        grid-column: 2;
-        grid-row: 1 / span 2;
+    .category-total.zero,
+    .vendor-row-balance.zero {
+        color: var(--text-muted);
+        text-shadow: none;
     }
 
     .display-row {
@@ -876,7 +956,7 @@ input[type="file"] {
     }
 
     .vendor-actions {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
 
     .payment-list-header,

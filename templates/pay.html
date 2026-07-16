@@ -1,24 +1,37 @@
 {% extends "base.html" %}
+{% from "macros.html" import terminal_header %}
 
 {% block content %}
 
-<div class="card">
-    <h1>Record Payment</h1>
-    <h3>{{ vendor.name }}</h3>
+<section class="vendor-summary">
+    {{ terminal_header(
+        "\\\\ PAYMENT", vendor.name,
+        "h1"
+    ) }}
 
-    <div class="display-row">
-        <span class="display-label">Current Balance</span>
+    <div class="vendor-stats">
+        <div class="stat-block">
+            <span class="display-label">Current Balance</span>
 
-        <span class="display-value">
-            ${{ "%.2f"|format(total_owed) }}
-        </span>
+            <span class="summary-value">
+                ${{ "%.2f"|format(total_owed) }}
+            </span>
+        </div>
+
+        <div class="stat-block">
+            <span class="display-label">Entry Date</span>
+
+            <span class="summary-value info-secondary">
+                {{ today[5:7] }}/{{ today[8:10] }}
+            </span>
+        </div>
     </div>
+</section>
 
-    <form
-        action="{{ url_for('save_payment', vendor_id=vendor.id) }}"
-        method="POST"
-        enctype="multipart/form-data"
-    >
+<section class="panel form-screen">
+    {{ terminal_header("\\\\ PAYMENT", "DETAILS") }}
+
+    <form method="POST">
         <label for="payment_date">Payment Date</label>
         <input
             type="date"
@@ -39,18 +52,22 @@
             required
         >
 
-        <label for="notes">Notes</label>
-        <textarea id="notes" name="notes"></textarea>
-
-        <label for="confirmation_number">Confirmation Number</label>
+        <label for="confirmation_number">
+            Confirmation Number
+        </label>
         <input
             type="text"
             id="confirmation_number"
             name="confirmation_number"
         >
 
-        <button type="submit">Record Payment</button>
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes"></textarea>
+
+        <button type="submit">
+            [ Record Payment ]
+        </button>
     </form>
-</div>
+</section>
 
 {% endblock %}

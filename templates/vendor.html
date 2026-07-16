@@ -1,11 +1,11 @@
 {% extends "base.html" %}
+{% from "macros.html" import terminal_header, terminal_button %}
 
 {% block content %}
 
 <section class="vendor-summary">
-    <div class="category-heading">
-    <h1 class="terminal-heading">[ {{ vendor.name }}  \\]</h1>
-    </div>
+    {{ terminal_header("\\\\ VENDOR", vendor.name,   "h1") }}
+
     <div class="vendor-stats">
         <div class="stat-block">
             <span class="display-label">Due Date</span>
@@ -35,7 +35,7 @@
                     target="_blank"
                     rel="noopener"
                 >
-                    [ Pay Online ]
+                    {{ terminal_button("Pay") }}
                 </a>
             {% endif %}
 
@@ -43,14 +43,15 @@
                 class="action-button"
                 href="{{ url_for('payment', vendor_id=vendor.id) }}"
             >
-                [ Record Payment ]
+                {{ terminal_button("Record") }}
             </a>
         </div>
     </div>
 </section>
 
 <section class="bill-history-panel">
-    <h2 class="terminal-heading">[ History :: Bills \\]</h2>
+    <!-- {{ terminal_header("\\\\ BILL HISTORY") }} -->
+    {{ terminal_header("\\\\ HISTORY", "BILLS",   "h1") }}
 
     <div class="bill-list-header">
         <span>Due Date</span>
@@ -97,8 +98,7 @@
 </section>
 
 <section class="payment-history-panel">
-    <h2 class="terminal-heading">[ History :: Payments \\]</h2>
-
+    {{ terminal_header("\\\\ HISTORY", "PAYMENTS",   "h1") }}
     <div class="payment-list-header">
         <span>Payment Date</span>
         <span></span>
@@ -120,10 +120,7 @@
 
 <div class="bottom-actions">
     <a class="button add-button" href="{{ url_for('add_bill', vendor_id=vendor.id) }}">
-        [ New Bill ]
-    </a>
-    <a class="button add-button" href="{{ url_for('edit_vendor', vendor_id=vendor.id) }}">
-        [ Edit Vendor ]
+        {{ terminal_button("New Bill") }}
     </a>
 </div>
 

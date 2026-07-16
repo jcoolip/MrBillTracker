@@ -10,7 +10,7 @@
 
     <header class="site-header">
         <div class="header-inner">
-            <a href="{{ url_for('index') }}"><div class="site-title">BILL BASE</div></a>
+            <a href="{{ url_for('index') }}"><div class="site-title">(╯°□°）╯︵ ┻━┻</div></a>
         </div>
     </header>
 
@@ -20,8 +20,8 @@
                    <div class="flash-stack">
                        {% for category, message in messages %}
                            <div class="flash-message flash-{{ category }}">
-                               <span class="flash-prefix">SYSTEM //</span>
-                               {{ message }}
+                                {{ message }}
+                               <span class="flash-prefix">\\ SYSTEM</span>                               
                            </div>
                        {% endfor %}
                    </div>

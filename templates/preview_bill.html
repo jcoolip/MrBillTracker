@@ -1,23 +1,57 @@
 {% extends "base.html" %}
+{% from "macros.html" import terminal_header %}
 
 {% block content %}
-    <h1>Final review</h1>
 
-    <p><strong>Vendor:</strong> {{ bill.vendor_name }}</p>
-    <p><strong>Amount:</strong> ${{ bill.amount_due }}</p>
-    <p><strong>Bill Date:</strong> {{ bill.bill_date }}</p>
-    <p><strong>Due Date:</strong> {{ bill.due_date }}</p>
-    <p><strong>Notes:</strong> {{ bill.notes }}</p>
-    <p><strong>Image:</strong><img class="bill-preview" src="{{ url_for('uploaded_file', filename=bill.image_path) }}"></p>
+<section class="panel form-screen">
+    {{ terminal_header("BILL REVIEW", "h1") }}
+
+    <div class="screen-content">
+        <div class="display-row">
+            <span class="display-label">Vendor</span>
+            <span class="display-value">
+                {{ bill.vendor_name }}
+            </span>
+        </div>
+
+        <div class="display-row">
+            <span class="display-label">Amount</span>
+            <span class="display-value">
+                ${{ "%.2f"|format(bill.amount_due|float) }}
+            </span>
+        </div>
+
+        <div class="display-row">
+            <span class="display-label">Due Date</span>
+            <span class="display-value info-secondary">
+                {{ bill.due_date }}
+            </span>
+        </div>
+
+        {% if bill.image_path %}
+            <img
+                class="bill-preview"
+                src="{{ url_for(
+                    'uploaded_file',
+                    filename=bill.image_path
+                ) }}"
+                alt="Uploaded bill"
+            >
+        {% endif %}
+    </div>
 
     <form action="{{ url_for('confirm_bill') }}" method="POST">
         <input type="hidden" name="vendor_id" value="{{ bill.vendor_id }}">
         <input type="hidden" name="amount_due" value="{{ bill.amount_due }}">
         <input type="hidden" name="due_date" value="{{ bill.due_date }}">
-        <input type="hidden" name="bill_date" value="{{ bill.bill_date }}">
-        <input type="hidden" name="notes" value="{{ bill.notes }}">
-        <input type="hidden" name="image_path" value="{{ bill.image_path }}">
+        <input type="hidden" name="bill_date" value="{{ bill.bill_date or '' }}">
+        <input type="hidden" name="notes" value="{{ bill.notes or '' }}">
+        <input type="hidden" name="image_path" value="{{ bill.image_path or '' }}">
 
-        <button type="submit">CONFIRM</button>
+        <button type="submit">
+            [ Confirm Bill ]
+        </button>
     </form>
+</section>
+
 {% endblock %}
