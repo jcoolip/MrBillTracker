@@ -159,6 +159,18 @@ main {
     font-size: 0.8rem;
 }
 
+.footer-link-text {
+    color: var(--commodore-light);
+
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+
+    text-shadow:
+        0 0 6px rgba(255, 176, 0, 0.55),
+        0 0 12px rgba(79, 116, 168, 0.28);
+}
+
 
 /* =========================================================
    Shared Panels

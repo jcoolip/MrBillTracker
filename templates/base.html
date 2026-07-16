@@ -32,7 +32,18 @@
     </main>
 
     <footer class="site-footer">
-        <p>&copy; 2026 BILL BASE</p>
+        <span class="footer-link-text">
+            \\ ..  connected .. \\</br>
+            \\ ... loading possible commands ... \\</br>
+            <div class="footer-link">
+                <a href="{{ url_for('add_bill') }}">                            
+                    \\ .. INSERT BILL .. \\
+                </a></br>
+                <a href="{{ url_for('admin') }}">                            
+                    \\ .. CONFIG .. \\
+                </a>
+            </div>
+        </span>
     </footer>
 
 </body>

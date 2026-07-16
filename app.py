@@ -126,6 +126,10 @@ init_db()
 init_vendors()
 init_uploads()
 
+@app.route("/admin")
+def admin():
+    return render_template("admin.html")
+
 @app.route("/")
 def index():
     conn = get_db_conn()
@@ -381,6 +385,7 @@ def payment(vendor_id):
         total_owed=total_owed,
         today=today
     )
+
 @app.route("/vendors/<int:vendor_id>/payment", methods=["POST"])
 def save_payment(vendor_id):
     conn = get_db_conn()

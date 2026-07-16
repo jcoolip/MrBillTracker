@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "macros.html" import terminal_header, terminal_button %}
+
+{% block content %}
+
+    <!-- Vendors -->
+    <section class="category-panel">
+        <div class="category-heading">
+            {{ terminal_header("\\\\ CONFIG ", "VENDORS") }}
+        </div>
+        <a
+            class="vendor-row-link"
+            href="#"
+        >
+            <div class="vendor-row">
+                <span class="vendor-row-name">
+                    Manage Vendors
+                </span>
+            </div>
+        </a>
+        <a
+            class="vendor-row-link"
+            href="#"
+        >
+            <div class="vendor-row">
+                <span class="vendor-row-name">
+                    Add Vendor
+                </span>
+            </div>
+        </a>
+
+    </section>
+
+    <!-- Categories -->
+    <section class="category-panel">
+        <div class="category-heading">
+            {{ terminal_header("\\\\ CONFIG ", "CATEGORIES") }}
+        </div>
+        <a
+            class="vendor-row-link"
+            href="#"
+        >
+            <div class="vendor-row">
+                <span class="vendor-row-name">
+                    Manage Categories
+                </span>
+            </div>
+        </a>
+        <a
+            class="vendor-row-link"
+            href="#"
+        >
+            <div class="vendor-row">
+                <span class="vendor-row-name">
+                    Add Category
+                </span>
+            </div>
+        </a>
+    </section>
+
+    <!-- System -->
+    <section class="category-panel">
+        <div class="category-heading">
+            {{ terminal_header("\\\\ CONFIG ", "SYSTEM") }}
+        </div>
+        <a
+            class="vendor-row-link"
+            href="#"
+        >
+            <div class="vendor-row">
+                <span class="vendor-row-name">
+                    Database Stats
+                </span>
+            </div>
+        </a>
+        <a
+            class="vendor-row-link"
+            href="#"
+        >
+            <div class="vendor-row">
+                <span class="vendor-row-name">
+                    Recent Activity
+                </span>
+            </div>
+        </a>
+    </section>
+
+<div class="bottom-actions">
+
+</div>
+
+{% endblock %}
