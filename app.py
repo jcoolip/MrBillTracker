@@ -139,6 +139,8 @@ def manage_vendors():
         ORDER BY name
     """).fetchall()
 
+    conn.close()
+
     return render_template("manage_vendors.html", vendors=vendors)
 
 @app.route("/admin/manage-categories")
@@ -149,6 +151,8 @@ def manage_categories():
         SELECT * FROM categories
         ORDER BY sort_order
     """).fetchall()
+
+    conn.close()
 
     return render_template("manage_categories.html", categories=categories)
 
@@ -506,7 +510,7 @@ def edit_vendor(vendor_id):
 def confirm_edit_vendor(vendor_id):
     conn = get_db_conn()
 
-    category = request.form["category"]
+    category_id = request.form["category_id"]
     name = request.form["name"].strip()
     pmt_url = request.form["pmt_url"]
 
@@ -514,14 +518,16 @@ def confirm_edit_vendor(vendor_id):
         conn.execute("""
             UPDATE vendors
             SET
-                category = ?,
+                category_id = ?,
                 name = ?,
-                pmt_url = ?
+                pmt_url = ?,
+                updated_at = ?
             WHERE id = ?
             """, (
-                category,
+                category_id,
                 name,
                 pmt_url,
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 vendor_id
             ))
 
