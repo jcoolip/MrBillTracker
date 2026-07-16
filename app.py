@@ -77,12 +77,16 @@ def init_vendors():
     conn = get_db_conn()
 
     vendors = [
-        (1, "Beckley Water Company", "https://www.eonlinebill.com/bapp/beckley/indexl"),
-        (1, "Appalachian Power", "https://www.appalachianpower.com/account/bills/"),
-        (1, "Frontier Communications", "https://ssoparent.frontier.com/pages/login"),
-        (1, "Mountaineer Gas", "https://www.doxo.com/bill-pay/mountaineergas"),
-        (2, "Disney+", "https://www.disneyplus.com/commerce/billing"),
-        (1, "Beckley Sanitary", "https://beckleywv.municipalonlinepayments.com/beckleywv")
+        (2, "Beckley Water Company", "https://www.eonlinebill.com/bapp/beckley/indexl"),
+        (2, "Appalachian Power", "https://www.appalachianpower.com/account/bills/"),
+        (3, "Frontier Communications", "https://ssoparent.frontier.com/pages/login"),
+        (2, "Mountaineer Gas", "https://www.doxo.com/bill-pay/mountaineergas"),
+        (8, "Disney+", "https://www.disneyplus.com/commerce/billing"),
+        (2, "Beckley Sanitary", "https://beckleywv.municipalonlinepayments.com/beckleywv"),
+        (1, "Household", "https://www.google.com/finance"),
+        (4, "AT&T", "https://www.att.com/my/#/login"),
+        (11, "Geico", "https://www.geico.com/myaccount/"),
+        (8, "Youtubetv", "https://www.youtube.com/paid_memberships")
     ]
 
     cats = [
