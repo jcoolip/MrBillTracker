@@ -2,39 +2,49 @@
 
 {% block content %}
 
-{% for vendor in vendors %}
+{% for category in categories %}
+<section class="category-panel">
 
-<a href="{{ url_for('view_vendor', vendor_id=vendor.id) }}">
-<div class="card">
-    <h3>
-        {{ vendor.name }}
-    </h3>
+    <div class="category-heading">
+        <h2 class="terminal-heading">[ {{ category.name }} \\ ]</h2>
 
-    <div class="display-row">
-        <span class="display-label">Balance</span>
-
-        <span class="display-value">
-            ${{ "%.2f"|format(vendor.total_owed) }}
-        </span>
-        <span class="display-label">Due Date</span>
-        <span class="display-value">
-            {{ vendor.next_due_date }}
+        <span class="category-total">
+            ${{ "%.2f"|format(category.total_owed) }}
         </span>
     </div>
-</div>
-</a>
 
+    {% for vendor in category.vendors %}
+        <a
+            class="vendor-row-link"
+            href="{{ url_for('view_vendor', vendor_id=vendor.id) }}"
+        >
+            <div class="vendor-row">
+
+                <span class="vendor-row-name">
+                    {{ vendor.name }}
+                </span>
+
+                <span class="vendor-row-date">
+                    {{ vendor.next_due_date }}
+                </span>
+
+                <span
+                    class="vendor-row-balance
+                    {% if vendor.total_owed <= 0 %}status-paid{% endif %}"
+                >
+                    ${{ "%.2f"|format(vendor.total_owed) }}
+                </span>
+
+            </div>
+        </a>
+    {% endfor %}
+
+</section>
 {% endfor %}
 
 <div class="bottom-actions">
     <a class="button add-button" href="{{ url_for('add_bill') }}">
         [ New Bill ]
-    </a>
-    <a class="button add-button" href="{{ url_for('add_vendor') }}">
-        [ New Vendor ]
-    </a>
-    <a class="button add-button" href="{{ url_for('add_category') }}">
-        [ New Category ]
     </a>
 </div>
 

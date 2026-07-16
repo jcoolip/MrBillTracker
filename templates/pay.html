@@ -6,6 +6,14 @@
     <h1>Record Payment</h1>
     <h3>{{ vendor.name }}</h3>
 
+    <div class="display-row">
+        <span class="display-label">Current Balance</span>
+
+        <span class="display-value">
+            ${{ "%.2f"|format(total_owed) }}
+        </span>
+    </div>
+
     <form
         action="{{ url_for('save_payment', vendor_id=vendor.id) }}"
         method="POST"
@@ -16,6 +24,7 @@
             type="date"
             id="payment_date"
             name="payment_date"
+            value="{{ today }}"
             required
         >
 
@@ -26,6 +35,7 @@
             name="amount_paid"
             step="0.01"
             min="0"
+            value="{{ '%.2f'|format(total_owed) }}"
             required
         >
 

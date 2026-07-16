@@ -3,8 +3,9 @@
 {% block content %}
 
 <section class="vendor-summary">
-    <h1>{{ vendor.name }}</h1>
-
+    <div class="category-heading">
+    <h1 class="terminal-heading">[ {{ vendor.name }}  \\]</h1>
+    </div>
     <div class="vendor-stats">
         <div class="stat-block">
             <span class="display-label">Due Date</span>
@@ -49,7 +50,7 @@
 </section>
 
 <section class="bill-history-panel">
-    <h2>Bills</h2>
+    <h2 class="terminal-heading">[ History :: Bills \\]</h2>
 
     <div class="bill-list-header">
         <span>Due Date</span>
@@ -96,7 +97,7 @@
 </section>
 
 <section class="payment-history-panel">
-    <h2>Payments</h2>
+    <h2 class="terminal-heading">[ History :: Payments \\]</h2>
 
     <div class="payment-list-header">
         <span>Payment Date</span>

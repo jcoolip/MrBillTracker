@@ -127,83 +127,88 @@ def index():
     conn = get_db_conn()
 
     vendors = conn.execute("""
-        WITH vendor_balances AS (
-            SELECT
-                vendors.id,
-                vendors.name,
-                vendors.pmt_url,
+        SELECT
+            vendors.id,
+            vendors.name,
+            vendors.pmt_url,
+            vendors.is_active,
+            categories.id AS category_id,
+            COALESCE(categories.name, 'Uncategorized') AS category_name,
+            COALESCE(categories.sort_order, 999) AS category_sort,
 
-                COALESCE(bill_totals.total_billed, 0)
-                    - COALESCE(payment_totals.total_paid, 0)
-                    AS total_owed,
+            COALESCE(bill_totals.total_billed, 0)
+                - COALESCE(payment_totals.total_paid, 0)
+                AS total_owed,
 
-                (
-                    SELECT bills.due_date
-                    FROM bills
-                    WHERE bills.vendor_id = vendors.id
-                    ORDER BY
-                        bills.bill_date DESC,
-                        bills.id DESC
-                    LIMIT 1
-                ) AS next_due_date
-
-            FROM vendors
-
-            LEFT JOIN (
-                SELECT
-                    vendor_id,
-                    SUM(amount_due) AS total_billed
+            (
+                SELECT bills.due_date
                 FROM bills
-                GROUP BY vendor_id
-            ) AS bill_totals
-                ON vendors.id = bill_totals.vendor_id
+                WHERE bills.vendor_id = vendors.id
+                ORDER BY bills.bill_date DESC, bills.id DESC
+                LIMIT 1
+            ) AS next_due_date
 
-            LEFT JOIN (
-                SELECT
-                    vendor_id,
-                    SUM(amount_paid) AS total_paid
-                FROM payments
-                GROUP BY vendor_id
-            ) AS payment_totals
-                ON vendors.id = payment_totals.vendor_id
-        )
+        FROM vendors
 
-        SELECT *
-        FROM vendor_balances
+        LEFT JOIN categories
+            ON vendors.category_id = categories.id
+
+        LEFT JOIN (
+            SELECT vendor_id, SUM(amount_due) AS total_billed
+            FROM bills
+            GROUP BY vendor_id
+        ) AS bill_totals
+            ON vendors.id = bill_totals.vendor_id
+
+        LEFT JOIN (
+            SELECT vendor_id, SUM(amount_paid) AS total_paid
+            FROM payments
+            GROUP BY vendor_id
+        ) AS payment_totals
+            ON vendors.id = payment_totals.vendor_id
+
+        WHERE vendors.is_active = 1
 
         ORDER BY
-            CASE
-                WHEN total_owed <= 0 THEN 1
-                ELSE 0
-            END,
+            category_sort,
+            category_name,
+            CASE WHEN total_owed <= 0 THEN 1 ELSE 0 END,
             next_due_date,
-            name
+            vendors.name
     """).fetchall()
 
     conn.close()
 
-    formatted_vendors = []
+    grouped_categories = {}
 
     for vendor in vendors:
         vendor = dict(vendor)
 
         if vendor["total_owed"] <= 0:
             vendor["next_due_date"] = "---"
-
         elif vendor["next_due_date"]:
             vendor["next_due_date"] = datetime.strptime(
                 vendor["next_due_date"],
                 "%Y-%m-%d"
             ).strftime("%m/%d")
-
         else:
             vendor["next_due_date"] = "---"
 
-        formatted_vendors.append(vendor)
+        category_name = vendor["category_name"]
+
+        if category_name not in grouped_categories:
+            grouped_categories[category_name] = {
+                "name": category_name,
+                "total_owed": 0,
+                "vendors": [],
+            }
+
+        grouped_categories[category_name]["total_owed"] += vendor["total_owed"]
+        grouped_categories[category_name]["vendors"].append(vendor)
 
     return render_template(
         "index.html",
-        vendors=formatted_vendors,
+        categories=grouped_categories.values()
     )
 
 @app.route("/vendors/<int:vendor_id>")
@@ -323,13 +328,55 @@ def payment(vendor_id):
         WHERE id = ?
     """, (vendor_id,)).fetchone()
 
+    balance = conn.execute("""
+        SELECT
+            COALESCE(bill_totals.total_billed, 0)
+            - COALESCE(payment_totals.total_paid, 0)
+            AS total_owed
+        FROM vendors
+
+        LEFT JOIN (
+            SELECT
+                vendor_id,
+                SUM(amount_due) AS total_billed
+            FROM bills
+            WHERE vendor_id = ?
+            GROUP BY vendor_id
+        ) AS bill_totals
+            ON vendors.id = bill_totals.vendor_id
+
+        LEFT JOIN (
+            SELECT
+                vendor_id,
+                SUM(amount_paid) AS total_paid
+            FROM payments
+            WHERE vendor_id = ?
+            GROUP BY vendor_id
+        ) AS payment_totals
+            ON vendors.id = payment_totals.vendor_id
+
+        WHERE vendors.id = ?
+    """, (
+        vendor_id,
+        vendor_id,
+        vendor_id
+    )).fetchone()
+
     conn.close()
+
+    today = datetime.now().strftime("%Y-%m-%d")
 
     if vendor is None:
         return "Vendor not found", 404
 
-    return render_template("pay.html", vendor=vendor)
+    total_owed = balance["total_owed"] if balance else 0
 
+    return render_template(
+        "pay.html",
+        vendor=vendor,
+        total_owed=total_owed,
+        today=today
+    )
 @app.route("/vendors/<int:vendor_id>/payment", methods=["POST"])
 def save_payment(vendor_id):
     conn = get_db_conn()
