@@ -16,13 +16,14 @@
 </{{ level }}>
 {% endmacro %}
 
-{% macro terminal_button(label, suffix="\\\\") %}
-[
+{% macro terminal_button(label, prefix="[ ", suffix=" ]") %}
+<span class="terminal-button-suffix">
+    {{ prefix }}
+</span>
 <span class="terminal-button-label">
     {{ label }}
 </span>
 <span class="terminal-button-suffix">
     {{ suffix }}
 </span>
-]
 {% endmacro %}

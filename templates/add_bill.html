@@ -4,8 +4,9 @@
 {% block content %}
 
 <section class="panel form-screen">
-    {{ terminal_header("\\\\ INSERT", "BILL") }}
-
+    <div class="category-heading">
+        {{ terminal_header("\\\\ INSERT", "BILL") }}
+    </div>
     <form action="{{ url_for('preview_bill') }}" method="POST" enctype="multipart/form-data">
         <label for="vendor_id">Vendor</label>
         <select name="vendor_id">
@@ -28,7 +29,7 @@
         <textarea id="notes" name="notes"></textarea>
 
         <label for="bill_image">Bill Image</label>
-        <input type="file" id="bill_image" name="bill_image" accept="image/*" capture="environment">
+        <input type="file" id="bill_image" name="bill_image" accept="image/*,.pdf">
 
         <button type="submit">Preview Bill</button>
     </form>

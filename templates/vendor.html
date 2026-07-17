@@ -4,8 +4,9 @@
 {% block content %}
 
 <section class="vendor-summary">
-    {{ terminal_header("\\\\ VENDOR", vendor.name,   "h1") }}
-
+    <div class="category-heading">
+        {{ terminal_header("\\\\ VENDOR", vendor.name,   "h1") }}
+    </div>
     <div class="vendor-stats">
         <div class="stat-block">
             <span class="display-label">Due Date</span>
@@ -26,33 +27,43 @@
                 ${{ "%.2f"|format(total_owed) }}
             </span>
         </div>
+        <div class="footer-link-text">
+            .. vendor commands ..
+            <div class="vendor-actions">
 
-        <div class="vendor-actions">
-            {% if vendor.pmt_url %}
+                {% if vendor.pmt_url %}
+                    <a
+                        class="action-button"
+                        href="{{ vendor.pmt_url }}"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        {{ terminal_button("Pay") }}
+                    </a>
+                {% endif %}
+
                 <a
                     class="action-button"
-                    href="{{ vendor.pmt_url }}"
-                    target="_blank"
-                    rel="noopener"
+                    href="{{ url_for('payment', vendor_id=vendor.id) }}"
                 >
-                    {{ terminal_button("Pay") }}
+                    {{ terminal_button("Record") }}
                 </a>
-            {% endif %}
-
-            <a
-                class="action-button"
-                href="{{ url_for('payment', vendor_id=vendor.id) }}"
-            >
-                {{ terminal_button("Record") }}
-            </a>
+                <a
+                    class="action-button"
+                    href="{{ url_for('add_bill', vendor_id=vendor.id) }}"
+                >
+                    {{ terminal_button("New") }}
+                </a>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="bill-history-panel">
     <!-- {{ terminal_header("\\\\ BILL HISTORY") }} -->
-    {{ terminal_header("\\\\ HISTORY", "BILLS",   "h1") }}
-
+    <div class="category-heading">
+        {{ terminal_header("\\\\ HISTORY", "BILLS",   "h1") }}
+    </div>
     <div class="bill-list-header">
         <span>Due Date</span>
         <span>Bill Date</span>
@@ -98,7 +109,9 @@
 </section>
 
 <section class="payment-history-panel">
-    {{ terminal_header("\\\\ HISTORY", "PAYMENTS",   "h1") }}
+    <div class="category-heading">
+        {{ terminal_header("\\\\ HISTORY", "PAYMENTS",   "h1") }}
+    </div>
     <div class="payment-list-header">
         <span>Payment Date</span>
         <span></span>
@@ -108,7 +121,7 @@
     {% for pay in payments %}
         <div class="payment-list-row">
             <span>{{ pay.payment_date }}</span>
-            <span></span>
+
             <span>
                 ${{ "%.2f"|format(pay.amount_paid) }}
             </span>
@@ -117,14 +130,5 @@
         <p class="empty-message">No payments recorded.</p>
     {% endfor %}
 </section>
-
-<div class="bottom-actions">
-    <a class="button add-button" href="{{ url_for('add_bill', vendor_id=vendor.id) }}">
-        {{ terminal_button("New Bill") }}
-    </a>
-</div>
-
-
-
 
 {% endblock %}

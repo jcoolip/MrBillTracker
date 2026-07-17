@@ -82,7 +82,7 @@ h3 {
     content: "";
     display: block;
 
-    height: 1px;
+    height: 0.6px;
     margin-top: 1rem;
 
     background:
@@ -120,7 +120,7 @@ h3 {
 }
 
 .site-title::after {
-    content: "[ HOME ACCOUNT TERMINAL \\ Rev. 0.3.2 - 3.42a ]";
+    content: "[ HOME ACCOUNT TERMINAL \\ Rev. 0.4.2 - 3.42a ]";
     display: block;
 
     margin-top: 0.2rem;
@@ -149,9 +149,7 @@ main {
 }
 
 .site-footer {
-    padding: 1.5rem 1rem;
-
-    border-top: 1px solid var(--border);
+    padding: 0rem 1rem;
 
     color: var(--text-muted);
 
@@ -159,12 +157,32 @@ main {
     font-size: 0.8rem;
 }
 
+.site-footer::before {
+    content: "";
+    display: block;
+
+    height: 0.6px;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--atari-orange) 0 22%,
+            var(--amber) 22% 44%,
+            var(--commodore-light) 44% 58%,
+            var(--amber) 58% 78%,
+            var(--atari-orange) 78% 100%
+        );
+}
+
 .footer-link-text {
-    color: var(--commodore-light);
+    color: var(--commodore-blue);
 
     font-size: 0.65rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+    text-align: center;
+
+    opacity: 0.7;
 
     text-shadow:
         0 0 6px rgba(255, 176, 0, 0.55),
@@ -202,6 +220,9 @@ main {
    Terminal Headings
    ========================================================= */
 
+
+
+
 .terminal-header {
     display: flex;
     align-items: center;
@@ -223,32 +244,13 @@ main {
         0 0 6px rgba(255, 176, 0, 0.55),
         0 0 12px rgba(79, 116, 168, 0.28);
 
-    white-space: nowrap;
-}
-
-.terminal-header::after {
-    content: "";
-    flex: 1;
-
-    min-width: 2rem;
-    height: 3px;
-
-    border-top: 1px solid rgba(255, 197, 71, 0.85);
-    border-bottom: 1px solid rgba(79, 116, 168, 0.65);
-
     background:
         linear-gradient(
             90deg,
-            transparent,
-            rgba(255, 176, 0, 0.85) 18%,
-            rgba(79, 116, 168, 0.75) 50%,
-            rgba(255, 176, 0, 0.85) 82%,
-            transparent
+            rgba(255, 176, 0, 0.25),
+            rgba(17, 16, 12, 0)
         );
-
-    box-shadow:
-        0 0 8px rgba(255, 176, 0, 0.35),
-        0 0 10px rgba(79, 116, 168, 0.24);
+    white-space: nowrap;
 }
 
 
@@ -324,8 +326,7 @@ main {
 
 .nav-menu a,
 .button,
-button,
-.action-button {
+button {
     display: inline-block;
 
     border: 1px solid var(--amber-dim);
@@ -368,7 +369,7 @@ button:focus-visible,
 
 .action-button {
     display: block;
-    padding: 0.9rem;
+    padding: 0.2rem;
 
     text-align: center;
     letter-spacing: 0.06em;
@@ -379,14 +380,14 @@ button:focus-visible,
 }
 
 .terminal-button-suffix {
-    color: var(--commodore-light);
+    color: var(--commodore-blue);
 
-    font-size: .62em;
-    font-weight: normal;
+    font-size: .72em;
+    font-weight:bold;
     letter-spacing: .18em;
     position: relative;
     top: .05em;
-    opacity: .55;
+    opacity: .85;
 
     text-shadow:
         0 0 5px rgba(79,116,168,.25);
@@ -594,13 +595,13 @@ input[type="file"] {
     overflow: hidden;
 }
 
-.terminal-header {
+/*.terminal-header {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
 
-    border-bottom: 1px solid var(--amber-dim);
+    border-bottom: 1px dashed var(--amber-dim);
 
     background:
         linear-gradient(
@@ -608,7 +609,7 @@ input[type="file"] {
             rgba(95, 53, 30, 0.35),
             rgba(17, 16, 12, 0)
         );
-}
+}*/
 
 .terminal-prefix {
     color: var(--commodore-light);
@@ -627,6 +628,7 @@ input[type="file"] {
 .terminal-title {
     color: var(--amber-bright);
 
+
     font-size: 1em;
     font-weight: bold;
 
@@ -635,18 +637,56 @@ input[type="file"] {
 }
 
 .category-heading .terminal-header {
-    flex: 1;
+    width: 100%;
+    min-width: 0;
     margin: 0;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0;
+
+}
+
+.category-heading {
+    cursor: pointer;
+}
+
+.category-toggle {
+    width: 1rem;
+
+    color: var(--commodore-light);
+
+    transition: transform .15s;
+}
+
+.category-body {
+
+    max-height: 3000px;
+
+    overflow: hidden;
+
+    transition:
+        max-height .5s ease,
+        opacity .5s ease;
+}
+
+/*.category-panel.collapsed .category-toggle {
+    transform: rotate(-90deg);
+}*/
+
+.category-panel.collapsed .category-body {
+
+    max-height: 0;
+
+    opacity: 0;
 }
 
 .category-total {
+    justify-self: end;
     padding-right: 1rem;
 
     color: var(--amber-bright);
 
     font-size: 1.1rem;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .vendor-row-link {
@@ -764,20 +804,22 @@ input[type="file"] {
     grid-column: 1 / -1;
 
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.75rem;
+
+    font-size: 1rem;
+}
+
+.vendor-actions .action-button {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
 }
 
 
 /* =========================================================
    Bill and Payment History
    ========================================================= */
-
-.bill-history-panel > :not(.terminal-header),
-.payment-history-panel > :not(.terminal-header) {
-    margin-right: 1.25rem;
-    margin-left: 1.25rem;
-}
 
 .payment-list-header,
 .payment-list-row,
@@ -811,7 +853,8 @@ input[type="file"] {
 .payment-list-row,
 .bill-list-row {
     padding: 0.8rem 0;
-
+    margin-left: 1.25rem;
+    margin-right: 1.25rem;
     border-bottom:
         1px dashed rgba(138, 100, 29, 0.35);
 }
@@ -846,6 +889,16 @@ input[type="file"] {
         0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
+.bill-file-preview {
+    margin: 1rem 0;
+    padding: 1rem;
+
+    border: 1px solid var(--border);
+    background: var(--panel-black);
+
+    text-align: center;
+}
+
 
 /* =========================================================
    Utilities
@@ -874,6 +927,7 @@ input[type="file"] {
 
 .empty-message {
     color: var(--text-muted);
+    margin-left: 1.25rem;
 }
 
 
@@ -920,34 +974,47 @@ input[type="file"] {
     }
 
     .category-heading {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 1rem;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.75rem;
 
-    border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        user-select: none;
 
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 176, 0, 0.05),
-            rgba(0, 0, 0, 0.15)
-        );
+        border-bottom: 1px solid var(--amber-dim);
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 176, 0, 0.05),
+                rgba(0, 0, 0, 0.15)
+            );
+    }
+
+    .category-toggle {
+        width: auto;
+        padding-left: 1rem;
+
+        color: var(--commodore-light);
+        font-weight: bold;
+        white-space: nowrap;
     }
 
     .category-heading .terminal-header {
         min-width: 0;
+        margin: 0;
+        padding: 0.75rem 0;
     }
 
     .category-total {
         padding-right: 1rem;
 
         color: var(--amber-bright);
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: bold;
         white-space: nowrap;
     }
-
     .category-total.zero,
     .vendor-row-balance.zero {
         color: var(--text-muted);
@@ -968,7 +1035,7 @@ input[type="file"] {
     }
 
     .vendor-actions {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, 1fr);
     }
 
     .payment-list-header,

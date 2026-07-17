@@ -4,8 +4,9 @@
 {% block content %}
 
 <section class="panel form-screen">
-    {{ terminal_header("BILL REVIEW", "h1") }}
-
+    <div class="category-heading">
+        {{ terminal_header("\\\\ REVIEW", "ADD BILL") }}
+    </div>
     <div class="screen-content">
         <div class="display-row">
             <span class="display-label">Vendor</span>
@@ -29,14 +30,27 @@
         </div>
 
         {% if bill.image_path %}
-            <img
-                class="bill-preview"
-                src="{{ url_for(
-                    'uploaded_file',
-                    filename=bill.image_path
-                ) }}"
-                alt="Uploaded bill"
-            >
+            {% set extension = bill.image_path.rsplit('.', 1)[-1].lower() %}
+
+            {% if extension in ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'] %}
+                <img
+                    class="bill-preview"
+                    src="{{ url_for('uploaded_file', filename=image_path) }}"
+                    alt="Bill preview"
+                >
+            {% elif extension == 'pdf' %}
+                <div class="bill-file-preview">
+                    <p class="info-secondary">PDF bill selected.</p>
+
+                    <a
+                        class="button"
+                        href="{{ url_for('uploaded_file', filename=bill.image_path) }}"
+                        target="_blank"
+                    >
+                        View PDF
+                    </a>
+                </div>
+            {% endif %}
         {% endif %}
     </div>
 

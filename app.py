@@ -1,7 +1,6 @@
 import os
 import sqlite3
 from datetime import datetime
-from ssl import get_default_verify_paths
 
 from flask import Flask, flash, redirect, render_template, request, url_for, send_from_directory
 from werkzeug.utils import secure_filename

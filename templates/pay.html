@@ -4,11 +4,12 @@
 {% block content %}
 
 <section class="vendor-summary">
-    {{ terminal_header(
-        "\\\\ PAYMENT", vendor.name,
-        "h1"
-    ) }}
-
+    <div class="category-heading">
+        {{ terminal_header(
+            "\\\\ PAYMENT", vendor.name,
+            "h1"
+        ) }}
+    </div>
     <div class="vendor-stats">
         <div class="stat-block">
             <span class="display-label">Current Balance</span>
@@ -29,8 +30,9 @@
 </section>
 
 <section class="panel form-screen">
-    {{ terminal_header("\\\\ PAYMENT", "DETAILS") }}
-
+    <div class="category-heading">
+        {{ terminal_header("\\\\ PAYMENT", "DETAILS") }}
+    </div>
     <form method="POST">
         <label for="payment_date">Payment Date</label>
         <input

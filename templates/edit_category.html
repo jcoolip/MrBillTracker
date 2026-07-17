@@ -4,8 +4,9 @@
 {% block content %}
 
 <section class="panel form-screen">
-    {{ terminal_header("\\\\ EDIT", "CATEGORY", "h1") }}
-
+    <div class="category-heading">
+        {{ terminal_header("\\\\ EDIT", "CATEGORY") }}
+    </div>
     <form method="POST">
         <label for="category_name">Category Name</label>
         <input type="text" id="name" name="name" value="{{ category.name }}" required>

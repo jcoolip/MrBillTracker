@@ -4,11 +4,21 @@
 {% block content %}
 
 {% for category in categories %}
-    <section class="category-panel">
+    <section class="category-panel collapsed">
 
         <div class="category-heading">
-            {{ terminal_header("\\\\ CATEGORY ", category.name) }}
+            <div class="terminal-header">
+                <span class="category-toggle">
+                        +
+                </span>
+                <span class="terminal-title">
+                    {{ category.name }}
+                </span>
 
+                <span class="terminal-prefix">
+                    \\ CATEGORY
+                </span>
+            </div>
             <span class="category-total
                 {% if category.total_owed <= 0 %}zero{% endif %}
             ">
@@ -16,37 +26,36 @@
             </span>
         </div>
 
-        {% for vendor in category.vendors %}
-            <a
-                class="vendor-row-link"
-                href="{{ url_for('view_vendor', vendor_id=vendor.id) }}"
-            >
-                <div class="vendor-row">
+            <div class="category-body">
+                {% for vendor in category.vendors %}
+                    <a
+                        class="vendor-row-link"
+                        href="{{ url_for('view_vendor', vendor_id=vendor.id) }}"
+                    >
+                        <div class="vendor-row">
 
-                    <span class="vendor-row-name">
-                        {{ vendor.name }}
-                    </span>
+                            <span class="vendor-row-name">
+                                {{ vendor.name }}
+                            </span>
 
-                    <span class="vendor-row-date">
-                        {{ vendor.next_due_date }}
-                    </span>
+                            <span class="vendor-row-date">
+                                {{ vendor.next_due_date }}
+                            </span>
 
-                    <span class="
-                        vendor-row-balance
-                        {% if vendor.total_owed <= 0 %}zero{% endif %}
-                    ">
-                        ${{ "%.2f"|format(vendor.total_owed) }}
-                    </span>
+                            <span class="
+                                vendor-row-balance
+                                {% if vendor.total_owed <= 0 %}zero{% endif %}
+                            ">
+                                ${{ "%.2f"|format(vendor.total_owed) }}
+                            </span>
 
-                </div>
-            </a>
-        {% endfor %}
-
-    </section>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
 {% endfor %}
 
-<!-- <div class="bottom-actions">
-
-</div> -->
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 
 {% endblock %}

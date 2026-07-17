@@ -4,8 +4,9 @@
 {% block content %}
 
 <section class="panel form-screen">
-    {{ terminal_header("\\\\ INSERT", "CATEGORY") }}
-
+    <div class="category-heading">
+        {{ terminal_header("\\\\ INSERT", "CATEGORY") }}
+    </div>
     <form
         action="{{ url_for('save_category') }}"
         method="POST"
