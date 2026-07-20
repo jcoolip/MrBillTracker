@@ -27,6 +27,23 @@
             {% endfor %}
         </select>
 
+        <label>Recurring?</label>
+        <input type="hidden" name="is_recurring" id="is_recurring">
+        <button type="button" id="recurring-toggle" class="button recurring-toggle">
+            <span class="toggle-value">
+                NO
+            </span>
+        </button>
+
+        <div id="recurring-fields">
+            <label for="recurring_amount">Bill Amount</label>
+            <input type="text" id="recurring_amount" name="recurring_amount">
+        
+            <label for="recurring_due_day">Day of Month</label>
+            <input type="text" id="recurring_due_day" name="recurring_due_day" >
+        </div>
+
+
         <label for="pmt_url">Payment URL</label>
         <input
             type="url"
@@ -37,5 +54,26 @@
         <button type="submit">Add Vendor</button>
     </form>
 </section>
+
+<script>
+    const input = document.getElementById("is_recurring");
+    const button = document.getElementById("recurring-toggle");
+    const value = button.querySelector(".toggle-value");
+    const recurringFields = document.getElementById("recurring-fields");
+    
+    function updateRecurringFields() {
+        recurringFields.hidden = input.value !== "1";
+    }
+
+    button.addEventListener("click", () => {
+        input.value = input.value === "1" ? "0" : "1";
+        value.textContent = input.value === "1" ? "YES" : "NO";
+        updateRecurringFields();
+
+    });
+
+    updateRecurringFields();
+
+</script>
 
 {% endblock %}

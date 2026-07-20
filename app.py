@@ -460,25 +460,40 @@ def save_vendor():
     category_id = request.form.get("category_id")
     name = request.form["name"].strip()
     pmt_url = request.form.get("pmt_url")
+    is_recurring = request.form.get("is_recurring", "0")
+    recurring_amount = request.form.get("recurring_amount") or None
+    recurring_due_day = request.form.get("recurring_due_day") or None
 
     try:
         conn.execute("""
-            INSERT INTO vendors (category_id, name, pmt_url)
-            VALUES (?, ?, ?)
+            INSERT INTO vendors (
+                category_id,
+                name,
+                pmt_url,
+                updated_at,
+                is_recurring,
+                recurring_amount,
+                recurring_due_day
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             category_id,
             name,
-            pmt_url
+            pmt_url,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            is_recurring,
+            recurring_amount,
+            recurring_due_day
         ))
 
         conn.commit()
+
     except sqlite3.IntegrityError:
-        flash(f"VENDOR DUPLICATE :: {name}", "error" )
+        flash(f"VENDOR DUPLICATE :: {name}", "error")
         return redirect(url_for("add_vendor"))
+
     finally:
         conn.close()
-
-    conn.close()
 
     flash("VENDOR ADDITION SUCCESS", "success")
     return redirect(url_for("index"))
@@ -607,7 +622,6 @@ def edit_category(category_id):
         return "Category not found", 404
 
     return render_template("edit_category.html", category=category, categories=categories)
-
 
 @app.route("/add")
 def add_bill():
