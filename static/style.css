@@ -585,6 +585,18 @@ input[type="file"] {
         );
 }
 
+.recurring-toggle {
+    min-width: 8rem;
+    text-align: center;
+}
+
+.recurring-toggle .toggle-value::before {
+    content: "[ ";
+}
+
+.recurring-toggle .toggle-value::after {
+    content: " ]";
+}
 
 /* =========================================================
    Category Dashboard

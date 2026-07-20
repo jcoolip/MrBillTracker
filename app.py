@@ -9,9 +9,7 @@ app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 app.config["DATABASE"] = "bill_tracker.db"
-app.config["APP_NAME"] = "HOME ACCOUNT TERMINAL"
-app.config["SECRET_KEY"] = "asdfjkl;"
-
+app.config["SECRET_KEY"] = "8u4j3oer0u843ipgrnk304igkperm"
 
 def get_db_conn():
     conn = sqlite3.connect(app.config["DATABASE"])
@@ -512,6 +510,9 @@ def confirm_edit_vendor(vendor_id):
     category_id = request.form["category_id"]
     name = request.form["name"].strip()
     pmt_url = request.form["pmt_url"]
+    is_recurring = request.form["is_recurring"]
+    recurring_amount = request.form["recurring_amount"]
+    recurring_due_day = request.form["recurring_due_day"]
 
     try:
         conn.execute("""
@@ -520,13 +521,19 @@ def confirm_edit_vendor(vendor_id):
                 category_id = ?,
                 name = ?,
                 pmt_url = ?,
-                updated_at = ?
+                updated_at = ?,
+                is_recurring = ?,
+                recurring_amount = ?,
+                recurring_due_day = ?
             WHERE id = ?
             """, (
                 category_id,
                 name,
                 pmt_url,
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                is_recurring,
+                recurring_amount,
+                recurring_due_day,
                 vendor_id
             ))
 
