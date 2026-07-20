@@ -548,7 +548,7 @@ def confirm_edit_vendor(vendor_id):
         conn.close()
 
     flash("VENDOR EDIT SUCCESS", "success")
-    return redirect(url_for("view_vendor", vendor_id=vendor_id))
+    return redirect(url_for("edit_vendor", vendor_id=vendor_id))
 
 @app.route("/category/add")
 def add_category():

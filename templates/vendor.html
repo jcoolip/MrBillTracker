@@ -54,6 +54,12 @@
                 >
                     {{ terminal_button("New") }}
                 </a>
+                <a
+                    class="action-button"
+                    href="{{ url_for('edit_vendor', vendor_id=vendor.id) }}"
+                >
+                    {{ terminal_button("Edit") }}
+                </a>
             </div>
         </div>
     </div>
