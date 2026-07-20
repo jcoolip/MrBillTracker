@@ -1,6 +1,7 @@
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, date, timedelta
+from urllib.parse import urlencode
 
 from flask import Flask, flash, redirect, render_template, request, url_for, send_from_directory
 from werkzeug.utils import secure_filename
@@ -122,9 +123,20 @@ def init_vendors():
 def init_uploads():
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+def edit_db():
+    conn = get_db_conn()
+
+    conn.execute("""
+        ALTER TABLE bills
+        ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0;
+    """)
+
+    conn.close()
+
 init_db()
 init_vendors()
 init_uploads()
+# edit_db()
 
 @app.route("/admin")
 def admin():
@@ -312,19 +324,71 @@ def view_vendor(vendor_id):
         LIMIT 1
     """, (vendor_id,)).fetchone()
 
-    bill_history = conn.execute("""
+    # bill_history = conn.execute("""
+    #     SELECT *
+    #     FROM bills
+    #     WHERE vendor_id = ?
+    #     ORDER BY bill_date DESC, id DESC
+    # """, (vendor_id,)).fetchall()
+
+    bill_rows = conn.execute("""
         SELECT *
         FROM bills
         WHERE vendor_id = ?
-        ORDER BY bill_date DESC, id DESC
+        ORDER BY created_at DESC, id DESC
     """, (vendor_id,)).fetchall()
 
+    calendar_bill = conn.execute("""
+        SELECT *
+        FROM bills
+        WHERE vendor_id = ?
+        AND COALESCE(is_archived, 0) = 0
+        ORDER BY
+            CASE
+                WHEN date(due_date) >= date('now') THEN 0
+                ELSE 1
+            END,
+            CASE
+                WHEN date(due_date) >= date('now')
+                    THEN date(due_date)
+            END ASC,
+            CASE
+                WHEN date(due_date) < date('now')
+                    THEN date(due_date)
+            END DESC
+        LIMIT 1
+    """, (vendor_id,)).fetchone()
+
+    bill_history = []
+
+    current_assigned = False
+
+    for bill in bill_rows:
+        bill_data = dict(bill)
+
+        if bill_data["is_archived"]:
+            bill_data["state"] = "archived"
+
+        elif not current_assigned:
+            bill_data["state"] = "current"
+            current_assigned = True
+
+        else:
+            bill_data["state"] = "past"
+
+        bill_data["vendor_name"] = vendor["name"]
+        bill_data["pmt_url"] = vendor["pmt_url"]
+        bill_data["calendar_url"] = google_calendar_url(bill_data)
+
+        bill_history.append(bill_data)
+        
     payment_history = conn.execute("""
         SELECT *
         FROM payments
         WHERE vendor_id = ?
         ORDER BY payment_date DESC, id DESC
     """, (vendor_id,)).fetchall()
+
 
     conn.close()
 
@@ -341,6 +405,16 @@ def view_vendor(vendor_id):
             "%Y-%m-%d"
         ).strftime("%m/%d")
 
+    calendar_url = None
+
+    if calendar_bill:
+        calendar_bill_data = dict(calendar_bill)
+
+        calendar_bill_data["vendor_name"] = vendor["name"]
+        calendar_bill_data["pmt_url"] = vendor["pmt_url"]
+
+        calendar_url = google_calendar_url(calendar_bill_data)
+
     return render_template(
         "vendor.html",
         payments=payments,
@@ -350,6 +424,7 @@ def view_vendor(vendor_id):
         last_payment=last_payment,
         bill_history=bill_history,
         payment_history=payment_history,
+        calendar_url=calendar_url
     )
 
 @app.route("/vendors/<int:vendor_id>/payment")
@@ -707,6 +782,57 @@ def confirm_bill():
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+@app.route("/bills/<int:bill_id>/archive", methods=["POST"])
+def archive_bill(bill_id):
+    conn = get_db_conn()
+
+    bill = conn.execute("""
+        SELECT vendor_id
+        FROM bills
+        WHERE id = ?
+    """, (bill_id,)).fetchone()
+
+    if bill is None:
+        conn.close()
+        return "Bill not found", 404
+
+    conn.execute("""
+        UPDATE bills
+        SET is_archived = 1
+        WHERE id = ?
+    """, (bill_id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(
+        url_for("view_vendor", vendor_id=bill["vendor_id"])
+    )
+
+def google_calendar_url(bill):
+    due_date = date.fromisoformat(bill["due_date"])
+
+    # Google all-day events use an exclusive end date.
+    end_date = due_date + timedelta(days=1)
+
+    params = {
+        "action": "TEMPLATE",
+        "text": f'Pay {bill["vendor_name"]}',
+        "dates": (
+            f'{due_date.strftime("%Y%m%d")}/'
+            f'{end_date.strftime("%Y%m%d")}'
+        ),
+        "details": (
+            f'Amount due: ${bill["amount_due"]:.2f}\n'
+            f'Due date: {due_date.strftime("%m/%d/%Y")}\n'
+            f'Payment URL: {bill["pmt_url"] or "Not provided"}'
+        ),
+    }
+
+    return (
+        "https://calendar.google.com/calendar/render?"
+        + urlencode(params)
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

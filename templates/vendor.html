@@ -38,7 +38,7 @@
                         target="_blank"
                         rel="noopener"
                     >
-                        {{ terminal_button("Pay") }}
+                        {{ terminal_button("WEBSITE") }}
                     </a>
                 {% endif %}
 
@@ -46,68 +46,140 @@
                     class="action-button"
                     href="{{ url_for('payment', vendor_id=vendor.id) }}"
                 >
-                    {{ terminal_button("Record") }}
+                    {{ terminal_button("add pmt") }}
                 </a>
                 <a
                     class="action-button"
                     href="{{ url_for('add_bill', vendor_id=vendor.id) }}"
                 >
-                    {{ terminal_button("New") }}
+                    {{ terminal_button("New bill") }}
                 </a>
-                <a
-                    class="action-button"
-                    href="{{ url_for('edit_vendor', vendor_id=vendor.id) }}"
-                >
-                    {{ terminal_button("Edit") }}
-                </a>
+                {% if calendar_url and total_owed != 0 %}
+                    <a
+                        class="action-button"
+                        href="{{ calendar_url }}"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        {{ terminal_button("Calendar") }}
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>
 </section>
 
 <section class="bill-history-panel">
-    <!-- {{ terminal_header("\\\\ BILL HISTORY") }} -->
     <div class="category-heading">
-        {{ terminal_header("\\\\ HISTORY", "BILLS",   "h1") }}
-    </div>
-    <div class="bill-list-header">
-        <span>Due Date</span>
-        <span>Bill Date</span>
-        <span>Amount</span>
-        <span>View</span>
+        {{ terminal_header("\\\\ HISTORY", "BILLS", "h1") }}
     </div>
 
     {% for bill in bill_history %}
-        <div class="bill-list-row">
-            <span>{{ bill.due_date }}</span>
+        <div class="bill-card">
+            <div class="display-row">
+                <span class="display-label">Due</span>
+                <span class="display-value">
+                    {{ bill.due_date }}
+                </span>
+            </div>
 
-            <span>
-                {% if bill.bill_date %}
-                    {{ bill.bill_date }}
-                {% else %}
-                    ---
-                {% endif %}
-            </span>
+            <div class="display-row">
+                <span class="display-label">Bill</span>
+                <span class="display-value">
+                    {{ bill.bill_date or "---" }}
+                </span>
+            </div>
 
-            <span>
-                ${{ "%.2f"|format(bill.amount_due) }}
-            </span>
+            <div class="display-row">
+                <span class="display-label">Amount</span>
+                <span class="display-value">
+                    ${{ "%.2f"|format(bill.amount_due) }}
+                </span>
+            </div>
 
-            <span>
+            <div class="footer-link-text">
+                .. bill commands ..
+            </div>
+
+            <div class="bill-actions">
                 {% if bill.image_path %}
                     <a
+                        class="action-button"
                         href="{{ url_for(
                             'uploaded_file',
                             filename=bill.image_path
                         ) }}"
                         target="_blank"
+                        rel="noopener"
                     >
-                        [ View ]
+                        {{ terminal_button("VIEW") }}
                     </a>
                 {% else %}
-                    ---
+                    <span class="action-button action-disabled">
+                        {{ terminal_button("---") }}
+                    </span>
                 {% endif %}
-            </span>
+
+                {% if bill.state == "archived" %}
+                    <span class="action-button action-disabled">
+                        {{ terminal_button("---") }}
+                    </span>
+                {% else %}
+                    <a
+                        class="action-button"
+                        href="{{ url_for(
+                            'payment',
+                            vendor_id=vendor.id
+                        ) }}"
+                    >
+                        {{ terminal_button("ADD PMT") }}
+                    </a>
+                {% endif %}
+
+                {% if bill.state == "past" %}
+                    <form
+                        method="post"
+                        action="{{ url_for(
+                            'archive_bill',
+                            bill_id=bill.id
+                        ) }}"
+                    >
+                        <button
+                            type="submit"
+                            class="command-link"
+                        >
+                            {{ terminal_button("STORE") }}
+                        </button>
+                    </form>
+
+                {% elif bill.state == "current" %}
+                    {% if total_owed <= 0 %}
+                        <form
+                            method="post"
+                            action="{{ url_for(
+                                'archive_bill',
+                                bill_id=bill.id
+                            ) }}"
+                        >
+                            <button
+                                type="submit"
+                                class="action-button"
+                            >
+                                {{ terminal_button("STORE") }}
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="action-button state-current">
+                            {{ terminal_button("CURRENT") }}
+                        </span>
+                    {% endif %}
+
+                {% else %}
+                    <span class="action-button state-filed">
+                        {{ terminal_button("FILED") }}
+                    </span>
+                {% endif %}
+            </div>
         </div>
     {% else %}
         <p class="empty-message">No bills recorded.</p>
