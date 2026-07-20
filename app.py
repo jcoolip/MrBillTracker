@@ -28,6 +28,9 @@ def init_db():
             pmt_url TEXT,
             is_active INTEGER NOT NULL DEFAULT 1,
             updated_at TEXT,
+            is_recurring INTEGER NOT NULL DEFAULT 0,
+            recurring_amount REAL,
+            recurring_due_day INTEGER,
             FOREIGN KEY (category_id) REFERENCES categories(id)
         )
     """)
