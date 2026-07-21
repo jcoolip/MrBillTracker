@@ -10,8 +10,8 @@ document.querySelectorAll(".category-heading").forEach((heading) => {
 
         symbol.textContent =
             panel.classList.contains("collapsed")
-                ? "+"
-                : "-";
+                ? "[+]"
+                : "[-]";
 
     });
 
