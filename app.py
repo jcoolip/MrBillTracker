@@ -67,6 +67,7 @@ def init_db():
             notes TEXT,
             image_path TEXT,
             created_at TEXT NOT NULL,
+            is_archived INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (vendor_id) REFERENCES vendors(id)
         )
         """)

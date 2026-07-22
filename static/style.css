@@ -39,7 +39,8 @@ html {
 }
 
 body {
-    margin: 0;
+    
+    margin-bottom: 5rem;
     min-height: 100vh;
 
     background: var(--case-black);
@@ -74,8 +75,11 @@ h3 {
    ========================================================= */
 
 .site-header {
+
     padding: 1rem;
-    background: rgba(8, 7, 5, 0.95);
+    padding-top: 3rem;
+    background: var(--case-black);
+    border-top: 1px solid var(--amber-dim);
 }
 
 .site-header::after {
@@ -83,7 +87,7 @@ h3 {
     display: block;
 
     height: 0.6px;
-    margin-top: 1rem;
+    margin-top: 2rem;
 
     background:
         linear-gradient(
@@ -149,9 +153,14 @@ main {
 }
 
 .site-footer {
-    padding: 0rem 1rem;
+    border-bottom: 1px solid var(--amber-dim);
+    padding-bottom: 2rem;
+    padding-right: 2rem;
+    padding-left: 2rem;
 
     color: var(--text-muted);
+
+    border-bottom: 1px solid var(--amber-dim);
 
     text-align: center;
     font-size: 0.8rem;
@@ -185,8 +194,8 @@ main {
     /* opacity: 0.7; */
 
     text-shadow:
-        0 0 6px rgba(255, 176, 0, 0.55),
-        0 0 12px rgba(79, 116, 168, 0.28);
+        0 0 6px rgba(255, 176, 0, 0.3),
+        0 0 12px rgba(79, 116, 168, 1);
 }
 
 
@@ -1045,7 +1054,7 @@ input[type="file"] {
     }
 
     .site-title {
-        font-size: 1.1rem;
+        font-size: 2rem;
     }
 
     .site-title::after {
