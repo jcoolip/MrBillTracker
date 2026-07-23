@@ -63,6 +63,17 @@
         <div class="category-heading">
             {{ terminal_header("\\\\ CONFIG ", "SYSTEM") }}
         </div>
+        <form
+            method="POST"
+            class="command-link"
+            action="{{ url_for('generate_recurring') }}"
+            onsubmit="return confirm('Generate recurring bills for this month?');">
+            <div class="vendor-row-link">
+                <button type="submit" class="vendor-row">
+                    Generate Recurring
+                </button>
+            </div>
+        </form>
         <a
             class="vendor-row-link"
             href="#"

@@ -1,3 +1,4 @@
+import calendar
 import os
 import sqlite3
 from datetime import datetime, date, timedelta
@@ -810,6 +811,16 @@ def archive_bill(bill_id):
         url_for("view_vendor", vendor_id=bill["vendor_id"])
     )
 
+@app.route("/bills/generate_recurring", methods=["POST"])
+def generate_recurring():
+    today = date.today()
+
+    created, skipped = generate_recurring_bills(today.year, today.month)
+
+    flash(f"RECURRING BILLS GENERATED :: {created} created, {skipped} skipped", "success")
+
+    return redirect(url_for("index"))
+
 def google_calendar_url(bill):
     due_date = date.fromisoformat(bill["due_date"])
 
@@ -834,6 +845,91 @@ def google_calendar_url(bill):
         "https://calendar.google.com/calendar/render?"
         + urlencode(params)
     )
+
+def recurring_due_date(year: int, month: int, requested_day: int) -> date:
+    last_day = calendar.monthrange(year, month)[1]
+    valid_day = min(requested_day, last_day)
+    return date(year, month, valid_day)
+
+def generate_recurring_bills(year: int, month: int) -> tuple[int, int]:
+    conn = get_db_conn()
+
+    today = date.today()
+    bill_date = today.isoformat()
+
+    vendors = conn.execute(
+        """
+        SELECT
+            id,
+            name,
+            recurring_amount,
+            recurring_due_day
+        FROM vendors
+        WHERE is_recurring = 1
+          AND recurring_amount IS NOT NULL
+          AND recurring_due_day IS NOT NULL
+        ORDER BY name
+        """
+    ).fetchall()
+
+    created_count = 0
+    skipped_count = 0
+
+    for vendor in vendors:
+        due_date = recurring_due_date(
+            year,
+            month,
+            vendor["recurring_due_day"],
+        )
+
+        existing_bill = conn.execute(
+            """
+            SELECT id
+            FROM bills
+            WHERE vendor_id = ?
+              AND due_date = ?
+            """,
+            (
+                vendor["id"],
+                due_date.isoformat(),
+            ),
+        ).fetchone()
+
+        if existing_bill:
+            skipped_count += 1
+            continue
+
+        conn.execute(
+            """
+            INSERT INTO bills (
+                vendor_id,
+                amount_due,
+                due_date,
+                bill_date,
+                notes,
+                image_path,
+                created_at,
+                is_archived
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+            """,
+            (
+                vendor["id"],
+                vendor["recurring_amount"],
+                due_date.isoformat(),
+                bill_date,
+                "Terminal curated bill",
+                None,
+                datetime.now().isoformat(timespec="seconds"),
+            ),
+        )
+
+        created_count += 1
+
+    conn.commit()
+    conn.close()
+
+    return created_count, skipped_count
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

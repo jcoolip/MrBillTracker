@@ -216,6 +216,24 @@ main {
 }
 
 
+.category-form {
+    margin: 0;
+    padding: 0;
+}
+
+.category-form button.vendor-row {
+    all: unset;
+
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        75px
+        100px;
+
+    width: 100%;
+    cursor: pointer;
+}
+
 /* =========================================================
    Terminal Headings
    ========================================================= */
